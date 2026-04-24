@@ -1,0 +1,262 @@
+version: "4.1"
+name: hao
+type: ARM
+deviceName: STM32F407ZGTx
+packDir: .pack/Keil/STM32F4xx_DFP.2.14.0
+srcDirs: []
+virtualFolder:
+  name: <virtual_root>
+  files: []
+  folders:
+    - name: USER
+      files:
+        - path: USER/main.c
+        - path: USER/stm32f4xx_it.c
+        - path: USER/system_stm32f4xx.c
+      folders: []
+    - name: HARDWARE
+      files:
+        - path: HARDWARE/LED/led.c
+        - path: HARDWARE/DMA/dma.c
+        - path: HARDWARE/CX522/cx522.c
+        - path: HARDWARE/XM1603/XM1603.c
+        - path: HARDWARE/BEEP/beep.c
+        - path: HARDWARE/IM948/im948_CMD.c
+        - path: HARDWARE/CONTROL/control.c
+        - path: HARDWARE/CONTROL/movement.c
+        - path: HARDWARE/Emm_V5/Emm_V5.c
+        - path: HARDWARE/VL53L0X/vl53l0x.c
+        - path: HARDWARE/VL53L0X/vl53l0x_api.c
+        - path: HARDWARE/VL53L0X/vl53l0x_api_calibration.c
+        - path: HARDWARE/VL53L0X/vl53l0x_api_core.c
+        - path: HARDWARE/VL53L0X/vl53l0x_api_ranging.c
+        - path: HARDWARE/VL53L0X/vl53l0x_api_strings.c
+        - path: HARDWARE/VL53L0X/vl53l0x_cali.c
+        - path: HARDWARE/VL53L0X/vl53l0x_gen.c
+        - path: HARDWARE/VL53L0X/vl53l0x_i2c.c
+        - path: HARDWARE/VL53L0X/vl53l0x_it.c
+        - path: HARDWARE/VL53L0X/vl53l0x_platform.c
+        - path: HARDWARE/WS2812/ws2812.c
+        - path: HARDWARE/KEY/key.c
+      folders: []
+    - name: SYSTEM
+      files:
+        - path: SYSTEM/delay/delay.c
+        - path: SYSTEM/sys/sys.c
+        - path: SYSTEM/usart1/usart1.c
+        - path: SYSTEM/usart2/usart2.c
+        - path: SYSTEM/usart3/usart3.c
+        - path: SYSTEM/uart4/uart4.c
+        - path: SYSTEM/uart5/uart5.c
+        - path: SYSTEM/usart6/usart6.c
+        - path: SYSTEM/CAN/can.c
+        - path: SYSTEM/TIMER/timer.c
+      folders: []
+    - name: CORE
+      files:
+        - path: CORE/startup_stm32f40_41xxx.s
+      folders: []
+    - name: FWLIB
+      files:
+        - path: FWLIB/src/misc.c
+        - path: FWLIB/src/stm32f4xx_adc.c
+        - path: FWLIB/src/stm32f4xx_can.c
+        - path: FWLIB/src/stm32f4xx_crc.c
+        - path: FWLIB/src/stm32f4xx_cryp.c
+        - path: FWLIB/src/stm32f4xx_cryp_aes.c
+        - path: FWLIB/src/stm32f4xx_cryp_des.c
+        - path: FWLIB/src/stm32f4xx_cryp_tdes.c
+        - path: FWLIB/src/stm32f4xx_dac.c
+        - path: FWLIB/src/stm32f4xx_dbgmcu.c
+        - path: FWLIB/src/stm32f4xx_dcmi.c
+        - path: FWLIB/src/stm32f4xx_dma.c
+        - path: FWLIB/src/stm32f4xx_dma2d.c
+        - path: FWLIB/src/stm32f4xx_exti.c
+        - path: FWLIB/src/stm32f4xx_flash.c
+        - path: FWLIB/src/stm32f4xx_flash_ramfunc.c
+        - path: FWLIB/src/stm32f4xx_gpio.c
+        - path: FWLIB/src/stm32f4xx_hash.c
+        - path: FWLIB/src/stm32f4xx_hash_md5.c
+        - path: FWLIB/src/stm32f4xx_hash_sha1.c
+        - path: FWLIB/src/stm32f4xx_i2c.c
+        - path: FWLIB/src/stm32f4xx_iwdg.c
+        - path: FWLIB/src/stm32f4xx_ltdc.c
+        - path: FWLIB/src/stm32f4xx_pwr.c
+        - path: FWLIB/src/stm32f4xx_rcc.c
+        - path: FWLIB/src/stm32f4xx_rng.c
+        - path: FWLIB/src/stm32f4xx_rtc.c
+        - path: FWLIB/src/stm32f4xx_sai.c
+        - path: FWLIB/src/stm32f4xx_sdio.c
+        - path: FWLIB/src/stm32f4xx_spi.c
+        - path: FWLIB/src/stm32f4xx_syscfg.c
+        - path: FWLIB/src/stm32f4xx_tim.c
+        - path: FWLIB/src/stm32f4xx_usart.c
+        - path: FWLIB/src/stm32f4xx_wwdg.c
+      folders: []
+    - name: ::CMSIS
+      files: []
+      folders: []
+dependenceList: []
+outDir: build
+miscInfo:
+  uid: 6b7058c75477eadc49bbb06367e0dd2b
+targets:
+  hao:
+    cppPreprocessAttrs:
+      defineList:
+        - STM32F40_41xxx
+        - USE_STDPERIPH_DRIVER
+      incList:
+        - .
+        - CORE
+        - SYSTEM/delay
+        - SYSTEM/sys
+        - HADRWARE
+        - FWLIB/inc
+        - FWLIB/src
+        - USER
+        - HARDWARE/LED
+        - SYSTEM/usart1
+        - SYSTEM/usart2
+        - SYSTEM/usart3
+        - SYSTEM/uart4
+        - SYSTEM/uart5
+        - SYSTEM/usart6
+        - HARDWARE/CX522
+        - HARDWARE/DMA
+        - HARDWARE/XM1603
+        - HARDWARE/BEEP
+        - SYSTEM/CAN
+        - HARDWARE/IM948
+        - HARDWARE/CONTROL
+        - HARDWARE/Emm_V5
+        - SYSTEM/TIMER
+        - HARDWARE/VL53L0X
+        - HARDWARE/WS2812
+        - HARDWARE/KEY
+        - .cmsis/include
+        - MDK-ARM/RTE/_hao
+      libList: []
+    excludeList: []
+    toolchain: AC5
+    toolchainConfigMap:
+      AC5:
+        archExtensions: ""
+        cpuType: Cortex-M4
+        floatingPointHardware: single
+        options:
+          version: 4
+          afterBuildTasks: []
+          asm-compiler:
+            defines: []
+          beforeBuildTasks: []
+          c/cpp-compiler:
+            CXX_FLAGS: --diag_suppress=1 --diag_suppress=1295
+            C_FLAGS: --diag_suppress=1 --diag_suppress=1295
+            c99-mode: true
+            gnu-extensions: true
+            one-elf-section-per-function: true
+            optimization: level-1
+            warnings: all-warnings
+          global:
+            output-debug-info: enable
+            use-microLIB: true
+          linker:
+            $disableOutputTask: true
+            $outputTaskExcludes:
+              - .bin
+            output-format: elf
+            ro-base: "0x08000000"
+            rw-base: "0x20000000"
+            xo-base: ""
+        scatterFilePath: ""
+        storageLayout:
+          RAM:
+            - id: 1
+              isChecked: false
+              mem:
+                size: "0x0"
+                startAddr: "0x0"
+              noInit: false
+              tag: RAM
+            - id: 2
+              isChecked: false
+              mem:
+                size: "0x0"
+                startAddr: "0x0"
+              noInit: false
+              tag: RAM
+            - id: 3
+              isChecked: false
+              mem:
+                size: "0x0"
+                startAddr: "0x0"
+              noInit: false
+              tag: RAM
+            - id: 1
+              isChecked: true
+              mem:
+                size: "0x20000"
+                startAddr: "0x20000000"
+              noInit: false
+              tag: IRAM
+            - id: 2
+              isChecked: false
+              mem:
+                size: "0x10000"
+                startAddr: "0x10000000"
+              noInit: false
+              tag: IRAM
+          ROM:
+            - id: 1
+              isChecked: false
+              isStartup: false
+              mem:
+                size: "0x0"
+                startAddr: "0x0"
+              tag: ROM
+            - id: 2
+              isChecked: false
+              isStartup: false
+              mem:
+                size: "0x0"
+                startAddr: "0x0"
+              tag: ROM
+            - id: 3
+              isChecked: false
+              isStartup: false
+              mem:
+                size: "0x0"
+                startAddr: "0x0"
+              tag: ROM
+            - id: 1
+              isChecked: true
+              isStartup: true
+              mem:
+                size: "0x100000"
+                startAddr: "0x8000000"
+              tag: IROM
+            - id: 2
+              isChecked: false
+              isStartup: false
+              mem:
+                size: "0x0"
+                startAddr: "0x0"
+              tag: IROM
+        useCustomScatterFile: false
+    uploadConfigMap:
+      JLink:
+        baseAddr: ""
+        bin: ""
+        cpuInfo:
+          cpuName: "null"
+          vendor: "null"
+        otherCmds: ""
+        proType: 1
+        speed: 8000
+      OpenOCD:
+        baseAddr: "0x08000000"
+        bin: ""
+        interface: cmsis-dap-v1
+        target: stm32f4x
+    uploader: OpenOCD

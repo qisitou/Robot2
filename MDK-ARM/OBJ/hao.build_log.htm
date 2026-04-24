@@ -1,0 +1,63 @@
+<html>
+<body>
+<pre>
+<h1>�Vision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ��Vision V5.39.0.0
+Copyright (C) 2023 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: 1 2241447267@qq.com, 1, LIC=9WSKC-7KAZC-SBBEJ-U16ZB-ZGP9I-QL75S
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.39.0.0
+Toolchain Path:  E:\keil5\KEIL5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 6 (build 750)
+Assembler:       Armasm.exe V5.06 update 6 (build 750)
+Linker/Locator:  ArmLink.exe V5.06 update 6 (build 750)
+Library Manager: ArmAr.exe V5.06 update 6 (build 750)
+Hex Converter:   FromElf.exe V5.06 update 6 (build 750)
+CPU DLL:         SARMCM3.DLL V5.39.0.0
+Dialog DLL:      DCM.DLL V1.17.5.0
+Target DLL:      CMSIS_AGDI.dll V1.33.16.0
+Dialog DLL:      TCM.DLL V1.56.4.0
+ 
+<h2>Project:</h2>
+C:\Users\22414\Desktop\Robot2\MDK-ARM\hao.uvprojx
+Project File Date:  04/19/2026
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 6 (build 750)', folder: 'E:\keil5\KEIL5\ARM\ARMCC\Bin'
+Build target 'hao'
+compiling LTCK.c...
+..\USER\LTCK.c(127): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  		avoid_data.vy = -(avoid_data.vw * 0.6); //转向速度的一半作为横向速度，调整这个比例可以改变转弯的锐利程度
+..\USER\LTCK.c(217): warning:  #111-D: statement is unreachable
+  	Chassis_SetSpeed(-50,0,Yaw_Angle,180);
+..\USER\LTCK.c: 2 warnings, 0 errors
+linking...
+Program Size: Code=32964 RO-data=600 RW-data=988 ZI-data=3324  
+".\OBJ\hao.axf" - 0 Error(s), 2 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                https://www.keil.com/pack/ARM.CMSIS.6.2.0.pack
+                ARM::CMSIS@6.2.0
+                CMSIS (Common Microcontroller Software Interface Standard)
+   * Component: CORE Version: 6.1.1
+
+Package Vendor: Keil
+                https://www.keil.com/pack/Keil.STM32F4xx_DFP.3.1.1.pack
+                Keil::STM32F4xx_DFP@3.1.1
+                STMicroelectronics STM32F4 Series Device Support
+
+<h2>Collection of Component include folders:</h2>
+  ./RTE/_hao
+  C:/Users/22414/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE@6.1.1
+Build Time Elapsed:  00:00:02
+</pre>
+</body>
+</html>
