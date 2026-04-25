@@ -84,3 +84,4 @@
 .\obj\im948_cmd.o: ..\HARDWARE\PID\pid.h
 .\obj\im948_cmd.o: ..\HARDWARE\StepMotor\StepMotor.h
 .\obj\im948_cmd.o: ..\HARDWARE\Infrared\Infrared.h
+.\obj\im948_cmd.o: ..\HARDWARE\Turnplate\turnplate.h

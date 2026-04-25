@@ -42,6 +42,7 @@
 #include "pid.h"
 #include "StepMotor.h"
 #include "Infrared.h"
+#include "turnplate.h"
 
 extern int a;
 

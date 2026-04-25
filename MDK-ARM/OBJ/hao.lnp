@@ -36,6 +36,7 @@
 ".\obj\pid.o"
 ".\obj\stepmotor.o"
 ".\obj\infrared.o"
+".\obj\turnplate.o"
 ".\obj\delay.o"
 ".\obj\sys.o"
 ".\obj\usart1.o"

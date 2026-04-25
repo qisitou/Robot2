@@ -84,3 +84,4 @@
 .\obj\stepmotor.o: ..\HARDWARE\PID\pid.h
 .\obj\stepmotor.o: ..\HARDWARE\StepMotor\StepMotor.h
 .\obj\stepmotor.o: ..\HARDWARE\Infrared\Infrared.h
+.\obj\stepmotor.o: ..\HARDWARE\Turnplate\turnplate.h

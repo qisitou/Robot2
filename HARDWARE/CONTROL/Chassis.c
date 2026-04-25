@@ -76,6 +76,24 @@ void Chassis_SINAccel(float vx1,float vy1,float vx2,float vy2,float Angle,float 
 }
 
 /*
+ *函数简介:底盘匀速运动
+ *参数说明:vx			初始横向速度		向右为正
+ *参数说明:vy			初始纵向速度		向前为正
+ *参数说明:Angle		前进方向
+ *参数说明:K			匀速时间			
+ *返回类型:无
+ *备注:无
+ */
+void Chassis_FixSpeed(float vx,float vy,float Angle,float K)
+{
+	for(uint16_t i=0;i<K;i++)
+	{
+		Chassis_SetSpeed(vx,vy,Yaw_Angle,Angle);
+		delay_ms(2);
+	}
+}
+
+/*
  *函数简介:底盘归位
  *参数说明:无
  *返回类型:无
@@ -273,8 +291,16 @@ void Chassis_TurnLeft(void)
 		Chassis_InverseMotionControl(0,0,Chassis_AnglePID.OUT*4);
 		delay_ms(2);
 	}
-	printf("end!");
 	PID_PositionSetParameter(&Chassis_AnglePID,SaveKp,SaveKi,SaveKd);//恢复PID
 	Chassis_InverseMotionControl(0,0,0);
 }
-
+/*
+ *函数简介:底盘停止
+ *参数说明:无
+ *返回类型:无
+ *备注:无
+ */
+void Chassis_Stop(void)
+{
+	Chassis_InverseMotionControl(0,0,0);
+}

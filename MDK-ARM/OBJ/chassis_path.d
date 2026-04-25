@@ -84,3 +84,4 @@
 .\obj\chassis_path.o: ..\HARDWARE\PID\pid.h
 .\obj\chassis_path.o: ..\HARDWARE\StepMotor\StepMotor.h
 .\obj\chassis_path.o: ..\HARDWARE\Infrared\Infrared.h
+.\obj\chassis_path.o: ..\HARDWARE\Turnplate\turnplate.h

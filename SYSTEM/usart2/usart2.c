@@ -73,7 +73,7 @@ void usart2_init(u32 bound){
 	//Usart2 NVIC 配置
     NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;//串口2中断通道
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;//抢占优先级3
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority =3;		//子优先2
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority =0;		//子优先2
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器、
 

@@ -82,8 +82,8 @@ void TIM5_Int_Init(u16 arr,u16 psc)
 
 
     NVIC_InitStructure.NVIC_IRQChannel=TIM5_IRQn; //定时器3中断
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority= 2; //抢占优先级1
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority= 2; //子优先级3
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority= 1; //抢占优先级1
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority= 0; //子优先级3
     NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 
@@ -138,8 +138,8 @@ void TIM7_Int_Init(u16 arr,u16 psc)
 
     NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority =1 ;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority =2;
     NVIC_Init(&NVIC_InitStructure);
 
     TIM_Cmd(TIM7,ENABLE);

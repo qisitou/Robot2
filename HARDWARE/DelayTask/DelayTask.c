@@ -111,147 +111,6 @@ void DelayTask_Times_Add()
 }
 
 
-//在主循环里调用：把 10ms 节拍处理掉，并执行到期任务。
-void DelayTask_Process(void)
-{
-    u32 tick_count;
-    u32 elapsed_ms;
-
-    __disable_irq();
-    tick_count = DelayTask_Tick_10ms;
-    DelayTask_Tick_10ms = 0;
-    __enable_irq();
-
-    if(0 == tick_count)
-    {
-        return;
-    }
-
-    //把“积压的多个 10ms 节拍”一次折算成毫秒，避免 while(tick_count--) 逐拍处理过慢。
-    elapsed_ms = tick_count * 10;
-
-    DelayTask_Times_Add();  //把 DelayTask_Add() 里暂存到数组中的任务，真正变成链表节点。
-
-    if(p_head != NULL)      //判断有没有任务，如果链表不空，就开始遍历链表，检查每个任务是否到时间。
-    {
-        p_move = p_head;    //从链表头开始遍历，p_move 就是当前遍历到的任务节点指针
-        DelayTask *p_last = NULL;   //定义一个指针 p_last，专门用来记录 p_move 的上一个节点，方便删除节点时修改链表结构
-        while(p_move != NULL)
-        {
-            u32 total_ms;
-            u32 need_run = 0;
-            u32 run_count;
-
-            //当前节点累计时间 = 上次剩余时间 + 本次累计到的毫秒数
-            total_ms = (u32)p_move->Current_DelayTime_ms + elapsed_ms;
-
-            if(p_move->DelayTime_ms > 0)
-            {
-                //补偿执行次数：跨过几个周期就补执行几次。
-                need_run = total_ms / p_move->DelayTime_ms;
-            }
-            else
-            {
-                //Delay=0 视为“立即执行”，本次把剩余次数全部执行完，避免该节点卡住。
-                need_run = p_move->Times;
-            }
-
-            if(need_run > p_move->Times)
-            {
-                need_run = p_move->Times;
-            }
-
-            run_count = need_run;
-            while(run_count--)
-            {
-                switch(p_move->param_num)   //根据参数个数调用对应函数
-                {
-                    case 0:
-                        (*(void(*)())p_move->FUNC)();
-                        break;
-                    case 1:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0]);
-                        break;
-                    case 2:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1]);
-                        break;
-                    case 3:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2]);
-                        break;
-                    case 4:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3]);
-                        break;
-                    case 5:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4]);
-                        break;
-                    case 6:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5]);
-                        break;
-                    case 7:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6]);
-                        break;
-                    case 8:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6],p_move->params[7]);
-                        break;
-                    case 9:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6],p_move->params[7],p_move->params[8]);
-                        break;
-                    case 10:
-                        (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6],p_move->params[7],p_move->params[8],p_move->params[9]);
-                        break;
-                }
-            }
-
-            p_move->Times -= need_run;
-
-            if(p_move->DelayTime_ms > 0)
-            {
-                //保留未满一个周期的余数，作为下次累计的起点。
-                p_move->Current_DelayTime_ms = total_ms % p_move->DelayTime_ms;
-            }
-
-            if(0 == p_move->Times)  //如果这个任务的执行次数已经用完了，就要删除这个任务节点了
-            {
-                /*  
-                这段代码就是“边遍历边安全删除链表节点”。
-                删节点时要分“删头”还是“删中间/尾部”
-                并且删完后把遍历指针移动到正确位置，避免野指针和断链。
-                */
-                if(p_move != p_head)
-                {
-                    p_last->next = p_move->next;
-                    if(NULL == p_move->next)
-                    {
-                        p_tail = p_last;
-                    }
-                    free(p_move->params);
-                    free(p_move);
-                    p_move = (DelayTask *)p_last->next;
-                }
-                else{
-                    p_head = (DelayTask *)p_move->next;
-                    free(p_move->params);
-                    free(p_move);
-                    p_move = p_head;
-
-                    if(p_move == NULL)
-                    {
-                        p_tail = NULL;
-                    }
-                }
-
-                DelayTask_Num--;
-
-            }
-            else
-            {
-                p_last = p_move;
-                p_move = (DelayTask *)p_move->next;
-            }
-        }
-    }
-}
-
 
 /*
 1.把暂存的任务真正加入链表
@@ -263,9 +122,100 @@ void TIM7_IRQHandler(void)   //TIM7中断
 {
     if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET)  //检查TIM更新中断发生与否
     {
-				out_time+=10;
-				if(out_time >=99999) out_time=0;
-        DelayTask_Tick_10ms++;
+
+        DelayTask_Times_Add();  //这一步会把 DelayTask_Add() 里暂存到数组中的任务，真正变成链表节点。
+
+        if(p_head != NULL)      //判断有没有任务，如果链表不空，就开始遍历链表，检查每个任务是否到时间。
+        {
+            p_move = p_head;    //从链表头开始遍历，p_move 就是当前遍历到的任务节点指针
+            DelayTask *p_last = NULL;   //定义一个指针 p_last，专门用来记录 p_move 的上一个节点，方便删除节点时修改链表结构
+            while(p_move != NULL)
+            {
+
+                if(p_move->Current_DelayTime_ms == p_move->DelayTime_ms)    //如果当前任务的累计延时等于它的设定延时，说明这个任务到时间了，可以执行了
+                {
+                    switch(p_move->param_num)   //根据参数个数调用对应函数
+                    {
+                        case 0:
+                            (*(void(*)())p_move->FUNC)();
+                            break;
+                        case 1:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0]);
+                            break;
+                        case 2:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1]);
+                            break;
+                        case 3:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2]);
+                            break;
+                        case 4:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3]);
+                            break;
+                        case 5:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4]);
+                            break;
+                        case 6:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5]);
+                            break;
+                        case 7:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6]);
+                            break;
+                        case 8:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6],p_move->params[7]);
+                            break;
+                        case 9:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6],p_move->params[7],p_move->params[8]);
+                            break;
+                        case 10:
+                            (*(void(*)())p_move->FUNC)(p_move->params[0],p_move->params[1],p_move->params[2],p_move->params[3],p_move->params[4],p_move->params[5],p_move->params[6],p_move->params[7],p_move->params[8],p_move->params[9]);
+                            break;
+                    }
+                    p_move->Times--;                    //这个任务的执行次数减一，如果还有剩余次数，就继续留在链表里，等下次到时间了再执行；如果没有剩余次数了，就删除这个任务节点。
+                    p_move->Current_DelayTime_ms = 0;   //执行完了，当前累计延时清零，重新开始计时，等下次到时间了再执行
+                }
+
+                p_move->Current_DelayTime_ms += 10;     //每次进中断，说明过了10ms，所以当前累计延时加10ms
+
+                if(0 == p_move->Times)  //如果这个任务的执行次数已经用完了，就要删除这个任务节点了
+                {
+                    /*  
+                    这段代码就是“边遍历边安全删除链表节点”。
+                    删节点时要分“删头”还是“删中间/尾部”
+                    并且删完后把遍历指针移动到正确位置，避免野指针和断链。
+                    */
+                    if(p_move != p_head)
+                    {
+                        p_last->next = p_move->next;
+                        if(NULL == p_move->next)
+                        {
+                            p_tail = p_last;
+                        }
+                        free(p_move->params);
+                        free(p_move);
+                        p_move = (DelayTask *)p_last->next;
+                    }
+                    else{
+                        p_head = (DelayTask *)p_move->next;
+                        free(p_move->params);
+                        free(p_move);
+                        p_move = p_head;
+
+                        if(p_move == NULL)
+                        {
+                            p_tail = NULL;
+                        }
+                    }
+
+                    DelayTask_Num--;
+
+                }
+                else
+                {
+                    p_last = p_move;
+                    p_move = (DelayTask *)p_move->next;
+                }
+            }
+        }
 
         TIM_ClearITPendingBit(TIM7, TIM_IT_Update);  //清除TIMx更新中断标志
     }

@@ -20,5 +20,7 @@ void Chassis_InverseMotionControl(float v_x,float v_y,float w);
 void Chassis_SetSpeed(float vx,float vy,float Yaw,float Start_Angle);
 void Chassis_GuiWei(float Start_Angle);
 void Chassis_SINAccel(float vx1,float vy1,float vx2,float vy2,float Angle,float K);
+void Chassis_FixSpeed(float vx,float vy,float Angle,float K);
+void Chassis_Stop(void);
 
 #endif

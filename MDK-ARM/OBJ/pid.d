@@ -84,3 +84,4 @@
 .\obj\pid.o: ..\HARDWARE\PID\pid.h
 .\obj\pid.o: ..\HARDWARE\StepMotor\StepMotor.h
 .\obj\pid.o: ..\HARDWARE\Infrared\Infrared.h
+.\obj\pid.o: ..\HARDWARE\Turnplate\turnplate.h

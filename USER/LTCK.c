@@ -7,45 +7,55 @@ Color Selected_Color = None;
 void LTCK_Init(void)
 {
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
-    Gray_Init();
-	LED_Init();
-	Infrared_Init();	//红外开关
-	KEY_Init();
-	delay_init(168);
+	/*
+		优先级高低：外设 抢占优先级 子优先级
+
+		陀螺仪               0   0
+		电机（TIM5）         1   0
+		延时函数（TIM7）     1   2
+
+
+	*/
+    Gray_Init();			//灰度传感器
+	LED_Init();				//LED
+	Infrared_Init();		//红外开关
+	KEY_Init();				//按键
+	delay_init(168);		//延时函数
 	uart5_init(115200);     //串口打印
 	usart3_init(9600);		//舵机控制板
 	uart4_init(9600);		//读卡器
 	usart2_init(115200);    //陀螺仪
 	usart6_init(115200);	//二维码
-	IM948_Init();
-	can_init();
-	TIM5_Int_Init(42-1, 1500-1);        // 1.5ms  进入一次中断	1s-->(10000-1, 8400-1) 
+	IM948_Init();			//陀螺仪初始化
+	delay_ms(2000);			//等待陀螺仪稳定
+	can_init();				//CAN总线初始化
+	TIM5_Int_Init(42-1, 1500-1);          // 1.5ms 进入一次中断 底盘控制专用
 	TIM6_Int_Init(100-1, 8400-1);		  //10ms 进入一次中断
 	TIM7_Int_Init(100-1, 8400-1);		  //10ms进入一次中断，延时执行任务 （Delaytask.c）
-	PwmServo_Init(20000-1,84-1);		  //初始化舵机 20ms 周期的 PWM 波（50Hz）
+	PwmServo_Init(20000-1,84-1);		  //初始化舵机 20ms 周期的 PWM 波（50Hz） --PA6
 
 	MYDMA_Config(DMA1_Stream3, DMA_Channel_4, (u32)&USART3->DR,(u32)LobotTxBuf,7, 0);				  //DMA1,STEAM3,CH4,外设为串口1,存储器为LobotTxBuf,长度为:SEND_BUF_SIZE.（只是用于发送执行动作组指令）
 	MYDMA_Config(DMA1_Stream2, DMA_Channel_4, (u32)&UART4->DR,(u32)cx522_rxbuf, 23, 1);				  //DMA1,STEAM2,CH4,外设为串口4,存储器为cx522_rxbuf,长度为:23（DMA接收读卡器数据）
 	MYDMA_Config(DMA1_Stream4, DMA_Channel_0, (u32)&SPI2->DR, (u32)pixelBuffer, Pixel_S1_NUM * 24, 0);//DMA1,STEAM4,CH0,外设为SPI2,存储器为pixelBuffer,长度为:Pixel_S1_NUM * 24（DMA发送WS2812像素数据）
 
-	cx522_Init();
-	VL53L0X_All_Init();
-	WS2812b_Configuration();
+	cx522_Init();				//读卡器初始化
+	VL53L0X_All_Init();			//激光测距初始化
+	WS2812b_Configuration();	//WS2812B像素灯初始化
 	rgb_SetColor(RGB_1,RED);
 	
-	XM1603_Init();
-	StepMotor_Init();
-	Chassis_PathInit();
-	Chassis_PID_Init();
+	XM1603_Init();				//二维码模块初始化
+	StepMotor_Init();			//步进电机初始化
+	Chassis_PathInit();			//底盘路径初始化
+	Chassis_PID_Init();			//底盘PID初始化
 	delay_ms(50);
-	rgb_SetColor(RGB_1,YELLOW);
+	rgb_SetColor(RGB_1,YELLOW);;
+
 }
 
 void Choose_Color(void)
 {
 	while(!Start_init)
 	{
-		//printf("start_Yaw:%.1f\n",Yaw_Angle);
 		if(Key1_value)		
 		{
 			Selected_Color++;
@@ -84,24 +94,25 @@ void Choose_Color(void)
 void Go_To_Turntable(void)
 {
 	//前往大转盘
+	DelayTask_Add(1,1000,(void (*)(void))Turnplate_Move,"%d",1);
+	DelayTask_Add(1,5000,(void (*)(void))Turnplate_Move,"%d",2);
 	Chassis_MovePath(Chassis_Path_StartToTurntable);
 	//定位
-	while(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_3) != 0)
+	while(GRAY_CH1 != 0)
 	{
 		Chassis_SetSpeed(-50,0,Yaw_Angle,0);
 	}
 	delay_ms(10); //必须得加一个延时，不然下一步会直接跳过
-	Chassis_InverseMotionControl(0,0,0);
+	Chassis_Stop();
 	delay_ms(10);
-	while(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_3) == 0)
+	while(GRAY_CH1 == 0)
 	{
 		Chassis_SetSpeed(0,-50,Yaw_Angle,0);
 	}
-	Chassis_InverseMotionControl(0,0,0);
+	Chassis_Stop();
 	delay_ms(10);
 	Chassis_MoveOnce(0,50,0,600,100);
-	printf("target1:%f\n",Chassis_AnglePID.Need_Value);
-	//Chassis_GuiWei();
+	Chassis_GuiWei(0);
 	
 }	
 
@@ -127,7 +138,7 @@ void Avoid_Obstacle(void)
 
 		PID_PositionCalc(&Avoid_PID, avoid_data.dis_now); //计算避障PID，输出到avoid_data.vw
 		avoid_data.vw = 200 - Avoid_PID.OUT*3; //基础转向速度为85，根据PID输出调整
-		avoid_data.vy = -(avoid_data.vw * 0.6); //转向速度的一半作为横向速度，调整这个比例可以改变转弯的锐利程度
+		avoid_data.vy = -(avoid_data.vw * 0.6f); //转向速度的一半作为横向速度，调整这个比例可以改变转弯的锐利程度
 
 		Chassis_InverseMotionControl(avoid_data.vx, avoid_data.vy, avoid_data.vw);
 	}
@@ -154,51 +165,81 @@ void Go_To_Stairs(void)
 	Chassis_GuiWei(90);
 	/*====================左转====================*/
 	Chassis_TurnLeft();	
-	/*====================前往测距阶梯====================*/
-	do
+	/*====================前往阶梯====================*/
+	Chassis_FixSpeed(-90,70,180,400);
+	/*====================到达阶梯====================*/
+	while(GRAY_CH1 != 0)
 	{
-		/* code */
-		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
-		Chassis_SetSpeed(-90,50,Yaw_Angle,180);
-	} while (vl53l0x_data.RangeMilliMeter < 400);//400这个值应该大一点，因为小车前面没有物体时，激光测到的数据是不确定性的，会在100~250之间，会误判
-
-	/*====================检测到阶梯====================*/
-	do
-	{
-		/* code */
-		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
-		Chassis_SetSpeed(-90,50,Yaw_Angle,180);
-	} while (vl53l0x_data.RangeMilliMeter > 200);
-	
-	/*====================细调与阶梯的距离====================*/ 
-	do
-	{
-		/* code */
-		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
-		Chassis_SetSpeed(-30,0,Yaw_Angle,180);
-	} while (vl53l0x_data.RangeMilliMeter > 120);
+		Chassis_SetSpeed(-120,0,Yaw_Angle,180);
+	}
+	Chassis_Stop();
+	delay_ms(200);
 	/*====================回正====================*/
 	Chassis_GuiWei(180);
-	/*====================定位前准备1:小车移动到离开阶梯的位置====================*/
-	do
+	/*====================定位前准备1:调整与阶梯相对位置====================*/
+	while(GRAY_CH2 == 0)
 	{
-		/* code */
-		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+		Chassis_SetSpeed(20,0,Yaw_Angle,180);
+	}
+	Chassis_FixSpeed(10,0,180,10); //微调，确保第二个灰度传感器完全离开白线
+	Chassis_Stop();
+	delay_ms(200);
+	/*====================定位前准备2:灰度1离开白线====================*/ 
+	while(GRAY_CH1 == 0)
+	{
 		Chassis_SetSpeed(0,-50,Yaw_Angle,180);
-	} while (vl53l0x_data.RangeMilliMeter < 122);
-	delay_ms(100);
-	/*====================定位前准备2:小车回到阶梯的位置====================*/
-	do
-	{
-		/* code */
-		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
-		//printf("data:%d\n",vl53l0x_data.RangeMilliMeter);
-		Chassis_SetSpeed(0,50,Yaw_Angle,180);
-	} while (vl53l0x_data.RangeMilliMeter > 120);
-	delay_ms(50);
+	}
+	delay_ms(10);
+	Chassis_Stop();
+	/*====================开始定位====================*/ 
+	Chassis_MoveOnce(0,50,0,300,100);
+
+	// /*====================前往测距阶梯====================*/
+	// do
+	// {
+	// 	/* code */
+	// 	vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+	// 	Chassis_SetSpeed(-90,50,Yaw_Angle,180);
+	// } while (vl53l0x_data.RangeMilliMeter < 400);//400这个值应该大一点，因为小车前面没有物体时，激光测到的数据是不确定性的，会在100~250之间，会误判
+
+	// /*====================检测到阶梯====================*/
+	// do
+	// {
+	// 	/* code */
+	// 	vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+	// 	Chassis_SetSpeed(-90,50,Yaw_Angle,180);
+	// } while (vl53l0x_data.RangeMilliMeter > 200);
+	
+	// /*====================细调与阶梯的距离====================*/ 
+	// do
+	// {
+	// 	/* code */
+	// 	vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+	// 	Chassis_SetSpeed(-30,0,Yaw_Angle,180);
+	// } while (vl53l0x_data.RangeMilliMeter > 120);
+	// /*====================回正====================*/
+	// Chassis_GuiWei(180);
+	// /*====================定位前准备1:小车移动到离开阶梯的位置====================*/
+	// do
+	// {
+	// 	/* code */
+	// 	vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+	// 	Chassis_SetSpeed(0,-50,Yaw_Angle,180);
+	// } while (vl53l0x_data.RangeMilliMeter < 122);
+	// delay_ms(100);
+	// /*====================定位前准备2:小车回到阶梯的位置====================*/
+	// do
+	// {
+	// 	/* code */
+	// 	vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+	// 	//printf("data:%d\n",vl53l0x_data.RangeMilliMeter);
+	// 	Chassis_SetSpeed(0,50,Yaw_Angle,180);
+	// } while (vl53l0x_data.RangeMilliMeter > 120);
+	// delay_ms(50);
+
 	while(1)
 	{
-		Chassis_InverseMotionControl(0,0,0);
+		Chassis_Stop();
 	}
 
 	

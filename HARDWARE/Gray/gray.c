@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include "gray.h"
 
+/*
+PF3 外
+PF2
+PF1
+PF0
+PB4
+PB9
+PE0
+PE1
+*/
 
 void Gray_Init(void)
 {
