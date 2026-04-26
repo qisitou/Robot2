@@ -3,11 +3,11 @@
 
 #include "stm32f4xx.h"                  // Device header
 #include "sys.h"
+#include <stdbool.h>
 #include "stdio.h"
 #include "stdint.h"
 #include "stm32f4xx_conf.h"
 #include <math.h>
-#include <stdint.h>
 #include "sys.h"
 #include "led.h"
 #include "delay.h"
@@ -16,7 +16,6 @@
 #include "uart4.h"
 #include "uart5.h"
 #include "usart6.h"
-#include "stdio.h"
 #include "dma.h"
 #include "cx522.h"
 #include "XM1603.h"
@@ -43,6 +42,7 @@
 #include "StepMotor.h"
 #include "Infrared.h"
 #include "turnplate.h"
+#include "filter.h"
 
 extern int a;
 

@@ -10,11 +10,9 @@ void LTCK_Init(void)
 	/*
 		优先级高低：外设 抢占优先级 子优先级
 
-		陀螺仪               0   0
-		电机（TIM5）         1   0
-		延时函数（TIM7）     1   2
-
-
+		陀螺仪                0   0
+		电机（TIM5）          1   0
+		延时函数（TIM7）      1   2
 	*/
     Gray_Init();			//灰度传感器
 	LED_Init();				//LED
@@ -49,7 +47,6 @@ void LTCK_Init(void)
 	Chassis_PID_Init();			//底盘PID初始化
 	delay_ms(50);
 	rgb_SetColor(RGB_1,YELLOW);;
-
 }
 
 void Choose_Color(void)
@@ -58,7 +55,7 @@ void Choose_Color(void)
 	{
 		if(Key1_value)		
 		{
-			Selected_Color++;
+			Selected_Color++;			
 			if(Selected_Color > 3)
 			{
 				Selected_Color = None;
@@ -98,17 +95,18 @@ void Go_To_Turntable(void)
 	DelayTask_Add(1,5000,(void (*)(void))Turnplate_Move,"%d",2);
 	Chassis_MovePath(Chassis_Path_StartToTurntable);
 	//定位
-	while(GRAY_CH1 != 0)
+	while(Range_ConsecutiveMatch_AutoCnt(GRAY_CH1, CMP_EQ, 0, 3))
 	{
 		Chassis_SetSpeed(-50,0,Yaw_Angle,0);
 	}
 	delay_ms(10); //必须得加一个延时，不然下一步会直接跳过
 	Chassis_Stop();
 	delay_ms(10);
-	while(GRAY_CH1 == 0)
+	while(Range_ConsecutiveMatch_AutoCnt(GRAY_CH1, CMP_NE, 0, 3))
 	{
 		Chassis_SetSpeed(0,-50,Yaw_Angle,0);
 	}
+	printf("status:%d\n",GRAY_CH1);
 	Chassis_Stop();
 	delay_ms(10);
 	Chassis_MoveOnce(0,50,0,600,100);
@@ -124,7 +122,7 @@ void Avoid_Obstacle(void)
 	avoid_data.vy --前进的快慢
 	avoid_data.vw --旋转速度
 	*/
-	while(Yaw_Angle <=82)
+	while(Yaw_Angle <=85)
 	{	
 		avoid_data.dis_target=250;  //避障目标距离250mm
 
@@ -137,8 +135,8 @@ void Avoid_Obstacle(void)
 		if(avoid_data.vx < -30) avoid_data.vx = -30; //限制最小速度
 
 		PID_PositionCalc(&Avoid_PID, avoid_data.dis_now); //计算避障PID，输出到avoid_data.vw
-		avoid_data.vw = 200 - Avoid_PID.OUT*3; //基础转向速度为85，根据PID输出调整
-		avoid_data.vy = -(avoid_data.vw * 0.6f); //转向速度的一半作为横向速度，调整这个比例可以改变转弯的锐利程度
+		avoid_data.vw = 250 - Avoid_PID.OUT*3; //基础转向速度为85，根据PID输出调整
+		avoid_data.vy = -(avoid_data.vw * 0.43f); //转向速度的一半作为横向速度，调整这个比例可以改变转弯的锐利程度
 
 		Chassis_InverseMotionControl(avoid_data.vx, avoid_data.vy, avoid_data.vw);
 	}
@@ -147,17 +145,22 @@ void Avoid_Obstacle(void)
 	printf("target:%f\n",Chassis_AnglePID.Need_Value);
 }
 
+void Set_KeepDistance(float Vx ,float Vy,float angle,float target_dis)
+{
+	Vx = 0.3 * (target_dis - vl53l0x_data.RangeMilliMeter);
+	Chassis_SetSpeed(Vx,Vy,Yaw_Angle,180);
+}
+
 void Go_To_Stairs(void)
 {
 	//前往阶梯
-
 	/*====================前往测量障碍物====================*/
 	do
 	{
 		/* code */
 	  vl53l0x_start_single_test(&vl53l0x_dev4,&vl53l0x_data);
 	  Chassis_SetSpeed(70,-150,Yaw_Angle,0);		
-	} while (vl53l0x_data.RangeMilliMeter < 400);
+	} while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LT, 400, 5));
 		
 	/*====================避障====================*/
 	Avoid_Obstacle();
@@ -168,32 +171,40 @@ void Go_To_Stairs(void)
 	/*====================前往阶梯====================*/
 	Chassis_FixSpeed(-90,70,180,400);
 	/*====================到达阶梯====================*/
-	while(GRAY_CH1 != 0)
+	while(Range_ConsecutiveMatch_AutoCnt(GRAY_CH1, CMP_EQ, 0, 3))
 	{
 		Chassis_SetSpeed(-120,0,Yaw_Angle,180);
 	}
 	Chassis_Stop();
-	delay_ms(200);
 	/*====================回正====================*/
 	Chassis_GuiWei(180);
 	/*====================定位前准备1:调整与阶梯相对位置====================*/
-	while(GRAY_CH2 == 0)
+	while(Range_ConsecutiveMatch_AutoCnt(GRAY_CH2, CMP_NE, 0, 3))
 	{
 		Chassis_SetSpeed(20,0,Yaw_Angle,180);
 	}
-	Chassis_FixSpeed(10,0,180,10); //微调，确保第二个灰度传感器完全离开白线
+	Chassis_FixSpeed(10,0,180,5); //微调，确保第二个灰度传感器完全离开白线
 	Chassis_Stop();
-	delay_ms(200);
 	/*====================定位前准备2:灰度1离开白线====================*/ 
-	while(GRAY_CH1 == 0)
+	while(Range_ConsecutiveMatch_AutoCnt(GRAY_CH1, CMP_NE, 0, 3))
 	{
 		Chassis_SetSpeed(0,-50,Yaw_Angle,180);
 	}
-	delay_ms(10);
 	Chassis_Stop();
 	/*====================开始定位====================*/ 
 	Chassis_MoveOnce(0,50,0,300,100);
-
+	Chassis_Stop();
+	/*====================运动至离开仓库====================*/
+	do
+	{
+		/* code */
+		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+		Set_KeepDistance(0,50,Yaw_Angle,120);
+	}while(Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_GT, 200, 3));
+	IM948_Reset();
+	Chassis_AnglePID.Need_Value = 0;
+	Chassis_Stop();
+	delay_ms(100);
 	// /*====================前往测距阶梯====================*/
 	// do
 	// {
@@ -237,12 +248,57 @@ void Go_To_Stairs(void)
 	// } while (vl53l0x_data.RangeMilliMeter > 120);
 	// delay_ms(50);
 
-	while(1)
-	{
-		Chassis_Stop();
-	}
+		
+
 
 	
+}
+
+void Go_To_Small_Turntable(void)
+{
+	//前往小转盘
+	/*====================先退下，给转弯一点空间====================*/
+	Chassis_FixSpeed(100,0,0,200);
+	Chassis_Stop();
+	/*====================左转====================*/
+	Chassis_TurnLeft();
+	/*====================检测小圆盘====================*/
+	do
+	{
+		Chassis_SetSpeed(0,-100,Yaw_Angle,90);
+		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+		/* code */
+	} while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LT, 350, 5));	
+	Chassis_FixSpeed(50,0,0,30); //微调，对齐小圆盘
+	Chassis_Stop();
+	/*====================细调与小圆盘的距离====================*/
+	while(1)
+	{
+		if(vl53l0x_data.RangeMilliMeter < 150)
+		{
+			break;
+		}
+
+		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+		int vx = -(vl53l0x_data.RangeMilliMeter - 150)*0.5;
+		if(vx >  20) vx =  20;
+		if(vx < -20) vx = -20;
+		Chassis_SetSpeed(vx,0,Yaw_Angle,90);
+	}
+	Chassis_Stop();
+	/*====================开始绕圈====================*/
+	while(1)
+	{
+		vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+		int vx = -(vl53l0x_data.RangeMilliMeter - 150)*0.5;
+		if(vx >  20) vx =  20;
+		if(vx < -20) vx = -20;
+		PID_PositionCalc(&Avoid_PID, vl53l0x_data.RangeMilliMeter);
+		int vw = 100 - Avoid_PID.OUT*2;
+		int vy = vw * 0.325f;	//r = 35cm/2(车的半径) + 15cm(与圆盘的距离)
+		Chassis_InverseMotionControl(vx,vy,vw);
+	}
+	PID_PositionClean(&Avoid_PID);
 }
 
 void Go_To_Warehouse(void)

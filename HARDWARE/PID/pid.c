@@ -106,6 +106,7 @@ void PID_PositionSetIOUTRange(PID_PositionInitTypedef* PID_InitStructure,float I
 void PID_PositionClean(PID_PositionInitTypedef* PID_InitStructure)
 {
 	PID_InitStructure->Ek=0;
+	PID_InitStructure->Ek_1=0;
 	PID_InitStructure->Sum_Ek=0;
 }
 
