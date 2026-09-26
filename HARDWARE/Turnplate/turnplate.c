@@ -263,10 +263,10 @@ void turnplate_detect_test()
 //                    printf("Hole_Idx:%d\r\n", Hole_Idx);
                 if (Hole_Idx==10)
                 {
-                    for(int i=0;i<10;i++)
-                    {
-                        printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
-                    }
+                    // for(int i=0;i<10;i++)
+                    // {
+                    //     printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+                    // }
                     detect_cpl = 1;
                     detect_flag = 1;
                     detect_allow = 0;

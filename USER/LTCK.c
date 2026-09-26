@@ -663,13 +663,14 @@ void Go_To_Small_Turntable(void)
     Chassis_Stop(); // 检测到小圆盘,停车
 
 
-    delay_ms(100);   
+    delay_ms(50);   
 
     DelayTask_Add(1, 400, (void (*)(void))change_flag, "%d%d", &flag, 0);
     while (flag)
     {
         Chassis_InverseMotionControl(0, 0, red_or_blue*(-150));  
     }
+    delay_ms(50);   
 	Chassis_Stop();
     flag = 1;  
  
@@ -848,7 +849,13 @@ void Go_To_Warehouse(void)
         detect_flag=1;       
         detect_allow=1;
         delay_ms(50);
-        while (detect_cpl==0);        
+        while (detect_cpl==0);   
+        
+        for(int i=0;i<10;i++)
+        {
+            printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+        }
+
 		//  HoleArr[0].ic=0x13;	
 		//  HoleArr[1].ic=0x31;
 		//  HoleArr[2].ic=0x21;		
@@ -1047,7 +1054,7 @@ void Go_To_Warehouse(void)
                             else if (warehouse_row == 1) block_number = openmv_warehouse_block_1;
                             //抓取仓库的积木,放到车上固定的位置,3,2,1,有53,52,51,43,42,41,33,32,31
                             runActionGroup(((warehouse_row+2)*10+block_number), 1, false);
-                            printf("jimu_movement%d\r\n",(warehouse_row+2)*10+block_number);
+                            // printf("jimu_movement%d\r\n",(warehouse_row+2)*10+block_number);
                            arm_finish_waiting();
                             
                             hole =find_hole( ( (warehouse_row << 4) | warehouse_virtual_col));
@@ -1057,8 +1064,8 @@ void Go_To_Warehouse(void)
                                 delay_ms(wait_time+300);
                                 runActionGroup(10+warehouse_row, 1, false);//抓取转盘的球放到仓库   13,12,11
 
-                                printf("hole:%d\r\n",hole);
-                                printf("movement%d\r\n",10+warehouse_row);
+                                // printf("hole:%d\r\n",hole);
+                                // printf("movement%d\r\n",10+warehouse_row);
                                arm_finish_waiting();                 
                             }           
                             warehouse_row--;                     
@@ -1071,8 +1078,8 @@ void Go_To_Warehouse(void)
                                 Turnplate_Move(hole+3);
                                 delay_ms(wait_time+300);              // 等转盘真正转到位
                                 runActionGroup(10+warehouse_row, 1, false);
-                                printf("hole:%d\r\n",hole);
-                                printf("movement%d\r\n",10+warehouse_row);                                
+                                // printf("hole:%d\r\n",hole);
+                                // printf("movement%d\r\n",10+warehouse_row);                                
                                arm_finish_waiting();                       // 等机械臂做完(自带10s兜底)
                                 HoleArr[hole].ic = 0;
                             }
@@ -1125,10 +1132,10 @@ void Go_To_Home(void)
         Chassis_GuiWei(90,500);
         while (1)
         {
-			printf("GRAY_CH2:%d\n\r", GRAY_CH2);
-			printf("GRAY_Right:%d\n\r", GRAY_Right);
-			printf("GRAY_behind:%d\n\r", GRAY_behind);
-			printf("GRAY_front:%d\n\r", GRAY_front);	
+			// printf("GRAY_CH2:%d\n\r", GRAY_CH2);
+			// printf("GRAY_Right:%d\n\r", GRAY_Right);
+			// printf("GRAY_behind:%d\n\r", GRAY_behind);
+			// printf("GRAY_front:%d\n\r", GRAY_front);	
             u8 f = GRAY_front, r = GRAY_Right, b = GRAY_behind, l = GRAY_CH2; // 0=红 1=黑
 
             if (f == 1)

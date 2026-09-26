@@ -17,7 +17,7 @@
 //宏函数 获得A的高八位
 
 bool isUartRxCompleted;
-bool isActionGroupCompleted = true;
+volatile bool isActionGroupCompleted = true;
 
 uint8_t LobotTxBuf[128];  //发送缓存
 uint8_t LobotRxBuf[16];

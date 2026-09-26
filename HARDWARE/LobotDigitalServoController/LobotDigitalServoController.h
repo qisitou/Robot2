@@ -14,7 +14,7 @@
 #define CMD_ACTION_GROUP_COMPLETE 0x08 //动作组运行完成指令
 
 extern bool isUartRxCompleted;
-extern bool isActionGroupCompleted;
+extern volatile bool isActionGroupCompleted;
 
 extern u16 kv;
 
