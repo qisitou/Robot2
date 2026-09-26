@@ -2,101 +2,101 @@
 
 Avoid_Data_t avoid_data = {0};
 
-VL53L0X_Dev_t vl53l0x_dev;//Éè±¸I2CÊı¾İ²ÎÊı
-VL53L0X_Dev_t vl53l0x_dev0;
+VL53L0X_Dev_t vl53l0x_dev;//è®¾å¤‡I2Cæ•°æ®å‚æ•°
 VL53L0X_Dev_t vl53l0x_dev1;
 VL53L0X_Dev_t vl53l0x_dev2;
 VL53L0X_Dev_t vl53l0x_dev3;
 VL53L0X_Dev_t vl53l0x_dev4;
-VL53L0X_DeviceInfo_t vl53l0x_dev_info;//Éè±¸ID°æ±¾ĞÅÏ¢
-uint8_t AjustOK=0;//Ğ£×¼±êÖ¾Î»
+VL53L0X_Dev_t vl53l0x_dev5;
+VL53L0X_DeviceInfo_t vl53l0x_dev_info;//è®¾å¤‡IDç‰ˆæœ¬ä¿¡æ¯
+uint8_t AjustOK=0;//æ ¡å‡†æ ‡å¿—ä½
 
 char time_VL53L0X,ready_VL53L0X=0;
 
-//VL53L0X¸÷²âÁ¿Ä£Ê½²ÎÊı
-//0£ºÄ¬ÈÏ;1:¸ß¾«¶È;2:³¤¾àÀë;3:¸ßËÙ
+//VL53L0Xå„æµ‹é‡æ¨¡å¼å‚æ•°
+//0ï¼šé»˜è®¤;1:é«˜ç²¾åº¦;2:é•¿è·ç¦»;3:é«˜é€Ÿ
 mode_data Mode_data[]=
 {
-    {(FixPoint1616_t)(0.25*65536), 
+    {(FixPoint1616_t)(0.25*65536),
 	 (FixPoint1616_t)(18*65536),
 	 33000,
 	 14,
-	 10},//Ä¬ÈÏ
-		
+	 10},//é»˜è®¤
+
 	{(FixPoint1616_t)(0.25*65536) ,
 	 (FixPoint1616_t)(18*65536),
-	 200000, 
+	 200000,
 	 14,
-	 10},//¸ß¾«¶È
-		
+	 10},//é«˜ç²¾åº¦
+
     {(FixPoint1616_t)(0.1*65536) ,
 	 (FixPoint1616_t)(60*65536),
 	 33000,
 	 18,
-	 14},//³¤¾àÀë
-	
+	 14},//é•¿è·ç¦»
+
     {(FixPoint1616_t)(0.25*65536) ,
 	 (FixPoint1616_t)(32*65536),
 	 20000,
 	 14,
-	 10},//¸ßËÙ
-		
+	 10},//é«˜é€Ÿ
+
 };
 
 
 void VL53L0X_All_Init()
 {
-    VL53L0X_i2c_init();//³õÊ¼»¯IIC×ÜÏß
+    VL53L0X_i2c_init();//åˆå§‹åŒ–IICæ€»çº¿
 
-//    while(vl53l0x_init(&vl53l0x_dev0,0))//vl53l0x³õÊ¼»¯
+//    while(vl53l0x_init(&vl53l0x_dev0,0))//vl53l0xåˆå§‹åŒ–
 //    {
-//        printf("id:0,%s\r\n","vl53l0x³õÊ¼»¯Ê§°Ü");
+//        printf("id:0,%s\r\n","vl53l0x\179\245\202\188\187\175\202\167\176\220");
 //        break;
 //    }
-//    vl53l0x_set_mode(&vl53l0x_dev0,HIGH_SPEED);//ÉèÖÃ²âÁ¿Ä£Ê½
+//    vl53l0x_set_mode(&vl53l0x_dev0,HIGH_SPEED);//è®¾ç½®æµ‹é‡æ¨¡å¼
 
-//    while(vl53l0x_init(&vl53l0x_dev1,1))//vl53l0x³õÊ¼»¯
-//    {
-//        printf("id:1,%s\r\n","vl53l0x³õÊ¼»¯Ê§°Ü");
-//        break;
-//    }
-//    vl53l0x_set_mode(&vl53l0x_dev1,HIGH_SPEED);//ÉèÖÃ²âÁ¿Ä£Ê½
+    while(vl53l0x_init(&vl53l0x_dev1,1))//vl53l0xåˆå§‹åŒ–
+    {
+        printf("id:1,%s\r\n","vl53l0x\179\245\202\188\187\175\202\167\176\220");
+        break;
+    }
+    vl53l0x_set_mode(&vl53l0x_dev1,HIGH_SPEED);//è®¾ç½®æµ‹é‡æ¨¡å¼
 
-    while(vl53l0x_init(&vl53l0x_dev2,2))//vl53l0x³õÊ¼»¯
+    while(vl53l0x_init(&vl53l0x_dev2,2))//vl53l0xåˆå§‹åŒ–
     {
         break;
     }
-    vl53l0x_set_mode(&vl53l0x_dev2,HIGH_SPEED);//ÉèÖÃ²âÁ¿Ä£Ê½
+    vl53l0x_set_mode(&vl53l0x_dev2,HIGH_SPEED);//è®¾ç½®æµ‹é‡æ¨¡å¼
 
-//    while(vl53l0x_init(&vl53l0x_dev3,3))//vl53l0x³õÊ¼»¯
-//    {
-//        printf("id:3,%s\r\n","vl53l0x³õÊ¼»¯Ê§°Ü");
-//        break;
-//    }
-//    vl53l0x_set_mode(&vl53l0x_dev3,HIGH_SPEED);//ÉèÖÃ²âÁ¿Ä£Ê½
+    while(vl53l0x_init(&vl53l0x_dev3,3))//vl53l0xåˆå§‹åŒ–
+    {
+        printf("id:3 init failed\r\n");
+        break;
+    }
+    vl53l0x_set_mode(&vl53l0x_dev3,HIGH_SPEED);//è®¾ç½®æµ‹é‡æ¨¡å¼
 
-   while(vl53l0x_init(&vl53l0x_dev4,4))//vl53l0x³õÊ¼»¯
-   {
-       break;
-   }
-   vl53l0x_set_mode(&vl53l0x_dev4,HIGH_SPEED);//ÉèÖÃ²âÁ¿Ä£Ê½
+//   while(vl53l0x_init(&vl53l0x_dev4,4))//vl53l0xåˆå§‹åŒ–
+//   {
+//       break;
+//   }
+//   vl53l0x_set_mode(&vl53l0x_dev4,HIGH_SPEED);//è®¾ç½®æµ‹é‡æ¨¡å¼
 
 }
 
-//API´íÎóĞÅÏ¢´òÓ¡
-//Status£ºÏêÇé¿´VL53L0X_Error²ÎÊıµÄ¶¨Òå
+//APIé”™è¯¯ä¿¡æ¯æ‰“å°
+//Statusï¼šè¯¦æƒ…çœ‹VL53L0X_Errorå‚æ•°çš„å®šä¹‰
 void print_pal_error(VL53L0X_Error Status)
 {
-	
+
 	char buf[VL53L0X_MAX_STRING_LENGTH];
-	
-	VL53L0X_GetPalErrorString(Status,buf);//¸ù¾İStatus×´Ì¬»ñÈ¡´íÎóĞÅÏ¢×Ö·û´®
-	
-    //printf("API Status: %i : %s\r\n",Status, buf);//´òÓ¡×´Ì¬ºÍ´íÎóĞÅÏ¢
+
+	VL53L0X_GetPalErrorString(Status,buf);//æ ¹æ®StatusçŠ¶æ€è·å–é”™è¯¯ä¿¡æ¯å­—ç¬¦ä¸²
+
+    //printf("API Status: %i : %s\r\n",Status, buf);//æ‰“å°çŠ¶æ€å’Œé”™è¯¯ä¿¡æ¯
 }
 
-//Ä£Ê½×Ö·û´®ÏÔÊ¾
-//mode:0-Ä¬ÈÏ;1-¸ß¾«¶È;2-³¤¾àÀë;3-¸ßËÙ
+//æ¨¡å¼å­—ç¬¦ä¸²æ˜¾ç¤º
+//mode:0-é»˜è®¤;1-é«˜ç²¾åº¦;2-é•¿è·ç¦»;3-é«˜é€Ÿ
 void mode_string(u8 mode,char *buf)
 {
 	switch(mode)
@@ -109,80 +109,80 @@ void mode_string(u8 mode,char *buf)
 
 }
 
-//ÅäÖÃVL53L0XÉè±¸I2CµØÖ·
-//dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//newaddr:Éè±¸ĞÂI2CµØÖ·
+//é…ç½®VL53L0Xè®¾å¤‡I2Cåœ°å€
+//dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//newaddr:è®¾å¤‡æ–°I2Cåœ°å€
 VL53L0X_Error vl53l0x_Addr_set(VL53L0X_Dev_t *dev,uint8_t newaddr)
 {
 	uint16_t Id;
 	uint8_t FinalAddress;
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	u8 sta=0x00;
-	
+
 	FinalAddress = newaddr;
-	
-	if(FinalAddress==dev->I2cDevAddr)//ĞÂÉè±¸I2CµØÖ·Óë¾ÉµØÖ·Ò»ÖÂ,Ö±½ÓÍË³ö
+
+	if(FinalAddress==dev->I2cDevAddr)//æ–°è®¾å¤‡I2Cåœ°å€ä¸æ—§åœ°å€ä¸€è‡´,ç›´æ¥é€€å‡º
 		return VL53L0X_ERROR_NONE;
-	//ÔÚ½øĞĞµÚÒ»¸ö¼Ä´æÆ÷·ÃÎÊÖ®Ç°ÉèÖÃI2C±ê×¼Ä£Ê½(400Khz)
+	//åœ¨è¿›è¡Œç¬¬ä¸€ä¸ªå¯„å­˜å™¨è®¿é—®ä¹‹å‰è®¾ç½®I2Cæ ‡å‡†æ¨¡å¼(400Khz)
 	Status = VL53L0X_WrByte(dev,0x88,0x00);
-	if(Status!=VL53L0X_ERROR_NONE) 
+	if(Status!=VL53L0X_ERROR_NONE)
 	{
-		sta=0x01;//ÉèÖÃI2C±ê×¼Ä£Ê½³ö´í
+		sta=0x01;//è®¾ç½®I2Cæ ‡å‡†æ¨¡å¼å‡ºé”™
 		goto set_error;
 	}
-	//³¢ÊÔÊ¹ÓÃÄ¬ÈÏµÄ0x52µØÖ·¶ÁÈ¡Ò»¸ö¼Ä´æÆ÷
+	//å°è¯•ä½¿ç”¨é»˜è®¤çš„0x52åœ°å€è¯»å–ä¸€ä¸ªå¯„å­˜å™¨
 	Status = VL53L0X_RdWord(dev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
-	if(Status!=VL53L0X_ERROR_NONE) 
+	if(Status!=VL53L0X_ERROR_NONE)
 	{
-		sta=0x02;//¶ÁÈ¡¼Ä´æÆ÷³ö´í
+		sta=0x02;//è¯»å–å¯„å­˜å™¨å‡ºé”™
 		goto set_error;
 	}
 	if(Id == 0xEEAA)
 	{
-		//ÉèÖÃÉè±¸ĞÂµÄI2CµØÖ·
+		//è®¾ç½®è®¾å¤‡æ–°çš„I2Cåœ°å€
 		Status = VL53L0X_SetDeviceAddress(dev,FinalAddress);
-		if(Status!=VL53L0X_ERROR_NONE) 
+		if(Status!=VL53L0X_ERROR_NONE)
 		{
-			sta=0x03;//ÉèÖÃI2CµØÖ·³ö´í
+			sta=0x03;//è®¾ç½®I2Cåœ°å€å‡ºé”™
 			goto set_error;
 		}
-		//ĞŞ¸Ä²ÎÊı½á¹¹ÌåµÄI2CµØÖ·
+		//ä¿®æ”¹å‚æ•°ç»“æ„ä½“çš„I2Cåœ°å€
 		dev->I2cDevAddr = FinalAddress;
-		//¼ì²éĞÂµÄI2CµØÖ·¶ÁĞ´ÊÇ·ñÕı³£
+		//æ£€æŸ¥æ–°çš„I2Cåœ°å€è¯»å†™æ˜¯å¦æ­£å¸¸
 		Status = VL53L0X_RdWord(dev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
-		if(Status!=VL53L0X_ERROR_NONE) 
+		if(Status!=VL53L0X_ERROR_NONE)
 		{
-			sta=0x04;//ĞÂI2CµØÖ·¶ÁĞ´³ö´í
+			sta=0x04;//æ–°I2Cåœ°å€è¯»å†™å‡ºé”™
 			goto set_error;
-		}	
+		}
 	}
 	set_error:
 	if(Status!=VL53L0X_ERROR_NONE)
 	{
-		print_pal_error(Status);//´òÓ¡´íÎóĞÅÏ¢
+		print_pal_error(Status);//æ‰“å°é”™è¯¯ä¿¡æ¯
 	}
 	//if(sta!=0)
 	  //printf("sta:0x%x\r\n",sta);
 	return Status;
 }
 
-//vl53l0x¸´Î»º¯Êı
-//dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
+//vl53l0xå¤ä½å‡½æ•°
+//dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
 void vl53l0x_reset(VL53L0X_Dev_t *dev)
 {
 	uint8_t addr;
-	addr = dev->I2cDevAddr;//±£´æÉè±¸Ô­I2CµØÖ·
-    VL53L0X_Xshut_0=0;//Ê§ÄÜVL53L0X
+	addr = dev->I2cDevAddr;//ä¿å­˜è®¾å¤‡åŸI2Cåœ°å€
+    VL53L0X_Xshut_0=0;//å¤±èƒ½VL53L0X
 	delay_ms(30);
-	VL53L0X_Xshut_0=1;//Ê¹ÄÜVL53L0X,ÈÃ´«¸ĞÆ÷´¦ÓÚ¹¤×÷(I2CµØÖ·»á»Ö¸´Ä¬ÈÏ0X52)
-	delay_ms(30);	
+	VL53L0X_Xshut_0=1;//ä½¿èƒ½VL53L0X,è®©ä¼ æ„Ÿå™¨å¤„äºå·¥ä½œ(I2Cåœ°å€ä¼šæ¢å¤é»˜è®¤0X52)
+	delay_ms(30);
 	dev->I2cDevAddr=0x52;
-	vl53l0x_Addr_set(dev,addr);//ÉèÖÃVL53L0X´«¸ĞÆ÷Ô­À´ÉÏµçÇ°Ô­I2CµØÖ·
-	VL53L0X_DataInit(dev);	
+	vl53l0x_Addr_set(dev,addr);//è®¾ç½®VL53L0Xä¼ æ„Ÿå™¨åŸæ¥ä¸Šç”µå‰åŸI2Cåœ°å€
+	VL53L0X_DataInit(dev);
 }
 
-//³õÊ¼»¯vl53l0x
-//dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
+//åˆå§‹åŒ–vl53l0x
+//dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
 VL53L0X_Error vl53l0x_init(VL53L0X_Dev_t *dev,uint8_t id)
 {
     //GPIO_InitTypeDef  GPIO_InitStructure;
@@ -190,106 +190,106 @@ VL53L0X_Error vl53l0x_init(VL53L0X_Dev_t *dev,uint8_t id)
     VL53L0X_Dev_t *pMyDevice = dev;
 
 
-    pMyDevice->I2cDevAddr = 0x52;//I2CµØÖ·(ÉÏµçÄ¬ÈÏ0x52)
-    pMyDevice->comms_type = 1;           //I2CÍ¨ĞÅÄ£Ê½
-    pMyDevice->comms_speed_khz = 400;    //I2CÍ¨ĞÅËÙÂÊ
+    pMyDevice->I2cDevAddr = 0x52;//I2Cåœ°å€(ä¸Šç”µé»˜è®¤0x52)
+    pMyDevice->comms_type = 1;           //I2Cé€šä¿¡æ¨¡å¼
+    pMyDevice->comms_speed_khz = 400;    //I2Cé€šä¿¡é€Ÿç‡
 
 
     if(id ==0)
     {
-        VL53L0X_Xshut_0 =1;//Ê¹ÄÜVL53L0X,ÈÃ´«¸ĞÆ÷´¦ÓÚ¹¤×÷
+        VL53L0X_Xshut_0 =1;//ä½¿èƒ½VL53L0X,è®©ä¼ æ„Ÿå™¨å¤„äºå·¥ä½œ
         delay_ms(20);
-        vl53l0x_Addr_set(pMyDevice,0x54);//ÉèÖÃVL53L0X´«¸ĞÆ÷I2CµØÖ·
+        vl53l0x_Addr_set(pMyDevice,0x54);//è®¾ç½®VL53L0Xä¼ æ„Ÿå™¨I2Cåœ°å€
     }
     else if(id ==1)
     {
-        VL53L0X_Xshut_1=1;//Ê¹ÄÜVL53L0X,ÈÃ´«¸ĞÆ÷´¦ÓÚ¹¤×÷
+        VL53L0X_Xshut_1=1;//ä½¿èƒ½VL53L0X,è®©ä¼ æ„Ÿå™¨å¤„äºå·¥ä½œ
         delay_ms(20);
-        vl53l0x_Addr_set(pMyDevice,0x56);//ÉèÖÃVL53L0X´«¸ĞÆ÷I2CµØÖ·
+        vl53l0x_Addr_set(pMyDevice,0x56);//è®¾ç½®VL53L0Xä¼ æ„Ÿå™¨I2Cåœ°å€
     }
     else if(id ==2)
     {
-        VL53L0X_Xshut_2=1;//Ê¹ÄÜVL53L0X,ÈÃ´«¸ĞÆ÷´¦ÓÚ¹¤×÷
+        VL53L0X_Xshut_2=1;//ä½¿èƒ½VL53L0X,è®©ä¼ æ„Ÿå™¨å¤„äºå·¥ä½œ
         delay_ms(20);
-        vl53l0x_Addr_set(pMyDevice,0x58);//ÉèÖÃVL53L0X´«¸ĞÆ÷I2CµØÖ·
+        vl53l0x_Addr_set(pMyDevice,0x58);//è®¾ç½®VL53L0Xä¼ æ„Ÿå™¨I2Cåœ°å€
     }
     else if(id ==3)
     {
-        VL53L0X_Xshut_3=1;//Ê¹ÄÜVL53L0X,ÈÃ´«¸ĞÆ÷´¦ÓÚ¹¤×÷
+        VL53L0X_Xshut_3=1;//ä½¿èƒ½VL53L0X,è®©ä¼ æ„Ÿå™¨å¤„äºå·¥ä½œ
         delay_ms(20);
-        vl53l0x_Addr_set(pMyDevice,0x60);//ÉèÖÃVL53L0X´«¸ĞÆ÷I2CµØÖ·
+        vl53l0x_Addr_set(pMyDevice,0x60);//è®¾ç½®VL53L0Xä¼ æ„Ÿå™¨I2Cåœ°å€
     }
     else if(id ==4)
     {
-        VL53L0X_Xshut_4=1;//Ê¹ÄÜVL53L0X,ÈÃ´«¸ĞÆ÷´¦ÓÚ¹¤×÷
+        VL53L0X_Xshut_4=1;//ä½¿èƒ½VL53L0X,è®©ä¼ æ„Ÿå™¨å¤„äºå·¥ä½œ
         delay_ms(20);
-        vl53l0x_Addr_set(pMyDevice,0x62);//ÉèÖÃVL53L0X´«¸ĞÆ÷I2CµØÖ·
+        vl53l0x_Addr_set(pMyDevice,0x62);//è®¾ç½®VL53L0Xä¼ æ„Ÿå™¨I2Cåœ°å€
     }
 
-    Status = VL53L0X_DataInit(pMyDevice);//Éè±¸³õÊ¼»¯
-//    printf("Éè±¸³õÊ¼»¯ OK,whose:%d\r\n",id);
+    Status = VL53L0X_DataInit(pMyDevice);//è®¾å¤‡åˆå§‹åŒ–
+//    printf("\201\232\177\184\179\245\202\188\187\175 OK,whose:%d\r\n",id);
 
 
-    if(Status!=VL53L0X_ERROR_NONE){     //ÅĞ¶ÏÈç¹û×´Ì¬²»Îª0   ´òÓ¡´íÎóĞÅÏ¢
+    if(Status!=VL53L0X_ERROR_NONE){     //åˆ¤æ–­å¦‚æœçŠ¶æ€ä¸ä¸º0   æ‰“å°é”™è¯¯ä¿¡æ¯
         print_pal_error(Status);
-        return Status;        //  ·µ»Ø´íÎóÖµ ¿ÉÍ¨¹ı´ËÖµDEBUG²éÕÒ´íÎóÎ»ÖÃ
+        return Status;        //  è¿”å›é”™è¯¯å€¼ å¯é€šè¿‡æ­¤å€¼DEBUGæŸ¥æ‰¾é”™è¯¯ä½ç½®
     }
 
-    Status = VL53L0X_GetDeviceInfo(pMyDevice,&vl53l0x_dev_info);//»ñÈ¡Éè±¸IDĞÅÏ¢
+    Status = VL53L0X_GetDeviceInfo(pMyDevice,&vl53l0x_dev_info);//è·å–è®¾å¤‡IDä¿¡æ¯
 
     if(Status!=VL53L0X_ERROR_NONE){
         print_pal_error(Status);
         return Status;
     }
 
-    if(Vl53l0x_data.adjustok==0xAA)//ÒÑĞ£×¼
+    if(Vl53l0x_data.adjustok==0xAA)//å·²æ ¡å‡†
         AjustOK=1;
-    else //Ã»Ğ£×¼
+    else //æ²¡æ ¡å‡†
         AjustOK=0;
 
     //error:
     if(Status!=VL53L0X_ERROR_NONE)
     {
-        print_pal_error(Status);//´òÓ¡´íÎóĞÅÏ¢
+        print_pal_error(Status);//æ‰“å°é”™è¯¯ä¿¡æ¯
         return Status;
     }
 
     return Status;
 }
 
-//Ö÷²Ëµ¥½çÃæ
+//ä¸»èœå•ç•Œé¢
 void vl53l0x_mtest_ui(void)
 {
-//	 POINT_COLOR=BLUE;//ÉèÖÃ×ÖÌåÎªÀ¶É«
+//	 POINT_COLOR=BLUE;//è®¾ç½®å­—ä½“ä¸ºè“è‰²
 //	 LCD_Fill(30,170,300,300,WHITE);
-//	 LCD_ShowString(30,170,200,16,16,"KEY_UP: Calibration mode");//Ğ£×¼Ä£Ê½
-//	 LCD_ShowString(30,190,200,16,16,"KEY1:   General mode");    //ÆÕÍ¨²âÁ¿Ä£Ê½
-//	 LCD_ShowString(30,210,200,16,16,"KEY0:   Interrupt mode");  //ÖĞ¶Ï²âÁ¿Ä£Ê½
+//	 LCD_ShowString(30,170,200,16,16,"KEY_UP: Calibration mode");//æ ¡å‡†æ¨¡å¼
+//	 LCD_ShowString(30,190,200,16,16,"KEY1:   General mode");    //æ™®é€šæµ‹é‡æ¨¡å¼
+//	 LCD_ShowString(30,210,200,16,16,"KEY0:   Interrupt mode");  //ä¸­æ–­æµ‹é‡æ¨¡å¼
 }
 
-//VL53L0XÖ÷²âÊÔ³ÌĞò
+//VL53L0Xä¸»æµ‹è¯•ç¨‹åº
 void vl53l0x_test(void)
-{   
+{
 //	 u8 i=0;
 	 //u8 key=0;
-//	 while(vl53l0x_init(&vl53l0x_dev))//vl53l0x³õÊ¼»¯
+//	 while(vl53l0x_init(&vl53l0x_dev))//vl53l0xåˆå§‹åŒ–
 //	 {
 //         printf("vl53l0x_dev error");
 //	 }
 //	 printf("VL53L0X OK\r\n");
-	 
+
 
 //	 while(1)
 //	 {
-//		 
+//
 //		 key = KEY_Scan(0);
 //		 if(key)
 //		 {
 //			  switch(key)
 //			  {
-//				  //case WKUP_PRES:  vl53l0x_calibration_test(&vl53l0x_dev);           break;//Ğ£×¼Ä£Ê½
-//				  //case KEY1_PRES:  vl53l0x_general_test(&vl53l0x_dev);               break;//ÆÕÍ¨²âÁ¿Ä£Ê½
-//				  //case KEY0_PRES:  vl53l0x_interrupt_test(&vl53l0x_dev);             break;//ÖĞ¶Ï²âÁ¿Ä£Ê½  
+//				  //case WKUP_PRES:  vl53l0x_calibration_test(&vl53l0x_dev);           break;//æ ¡å‡†æ¨¡å¼
+//				  //case KEY1_PRES:  vl53l0x_general_test(&vl53l0x_dev);               break;//æ™®é€šæµ‹é‡æ¨¡å¼
+//				  //case KEY0_PRES:  vl53l0x_interrupt_test(&vl53l0x_dev);             break;//ä¸­æ–­æµ‹é‡æ¨¡å¼
 //			  }
 //			  vl53l0x_mtest_ui();
 //		 }
@@ -300,16 +300,16 @@ void vl53l0x_test(void)
 //			 //LED0=!LED0;
 //		 }
 //		 delay_ms(50);
-//		 
+//
 //	 }
 }
 
-//----------ÒÔÏÂº¯ÊıÎªUSMARTµ÷ÓÃ------------//
+//----------ä»¥ä¸‹å‡½æ•°ä¸ºUSMARTè°ƒç”¨------------//
 
-//»ñÈ¡vl53l0x´«¸ĞÆ÷IDĞÅÏ¢
+//è·å–vl53l0xä¼ æ„Ÿå™¨IDä¿¡æ¯
 void vl53l0x_info(void)
 {
-	// printf("\r\n-------vl53l0x´«¸ĞÆ÷Éè±¸ĞÅÏ¢-------\r\n\r\n");
+	// printf("\r\n-------vl53l0x\180\171\184\208\198\247\201\232\177\184\208\197\207\162-------\r\n\r\n");
 	// printf("  Name:%s\r\n",vl53l0x_dev_info.Name);
 	// printf("  Addr:0x%x\r\n",vl53l0x_dev.I2cDevAddr);
 	// printf("  ProductId:%s\r\n",vl53l0x_dev_info.ProductId);
@@ -318,12 +318,12 @@ void vl53l0x_info(void)
 	// printf("\r\n-----------------------------------\r\n");
 }
 
-//»ñÈ¡Ò»´Î²âÁ¿¾àÀëÊı¾İ
-//modeÄ£Ê½ÅäÖÃ 0:Ä¬ÈÏ;1:¸ß¾«¶È;2:³¤¾àÀë;3:¸ßËÙ
+//è·å–ä¸€æ¬¡æµ‹é‡è·ç¦»æ•°æ®
+//modeæ¨¡å¼é…ç½® 0:é»˜è®¤;1:é«˜ç²¾åº¦;2:é•¿è·ç¦»;3:é«˜é€Ÿ
 void One_measurement(u8 mode)
 {
 	vl53l0x_set_mode(&vl53l0x_dev,mode);
 	VL53L0X_PerformSingleRangingMeasurement(&vl53l0x_dev,&vl53l0x_data);
 	//printf("\r\n d: %4d mm.\r\n",vl53l0x_data.RangeMilliMeter);
-		
+
 }

@@ -38,5 +38,6 @@ void PID_PositionSetOUTRange(PID_PositionInitTypedef* PID_InitStructure,float ou
 void PID_PositionSetIOUTRange(PID_PositionInitTypedef* PID_InitStructure,float Iout_low,float Iout_up);//位置式PID设置积分限幅
 void PID_PositionClean(PID_PositionInitTypedef* PID_InitStructure);//位置式PID清理
 void PID_PositionCalc(PID_PositionInitTypedef* PID_InitStructure,float NowValue);//位置式PID计算
+void PID_AngleCalc(PID_PositionInitTypedef* PID_InitStructure,float NowValue);//角度式PID计算
 
 #endif

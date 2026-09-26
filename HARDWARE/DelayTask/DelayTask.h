@@ -4,6 +4,7 @@
 #include "sys.h"
 
 
+extern u16  TIME_S ;
 typedef struct
 {
     u16 Current_DelayTime_ms;

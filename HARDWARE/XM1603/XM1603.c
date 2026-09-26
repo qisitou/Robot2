@@ -5,12 +5,12 @@
 #include "led.h"
 
 #define GET_LOW_BYTE(A) ((uint8_t)(A))
-//ºêº¯Êý »ñµÃAµÄµÍ°ËÎ»
+//å®å‡½æ•° èŽ·å¾—Açš„ä½Žå…«ä½
 #define GET_HIGH_BYTE(A) ((uint8_t)((A) >> 8))
-//ºêº¯Êý »ñµÃAµÄ¸ß°ËÎ»
+//å®å‡½æ•° èŽ·å¾—Açš„é«˜å…«ä½
 
 
-uint8_t XM1603_TxBuf[128];  //·¢ËÍ»º´æ
+uint8_t XM1603_TxBuf[128];  //å‘é€ç¼“å­˜
 
 u8 QR_allow = 1;
 u8 QR_code= 0;
@@ -18,20 +18,20 @@ u8 QR_code= 0;
 
 void XM1603_Init()
 {
-    USART_ITConfig(XM1603_UART, USART_IT_RXNE, DISABLE);//¿ªÆôÏà¹ØÖÐ¶Ï
+    USART_ITConfig(XM1603_UART, USART_IT_RXNE, DISABLE);//å¼€å¯ç›¸å…³ä¸­æ–­
 
     XM1603_Write_Boud();
     delay_ms(50);
-   XM1603_Write_Byte(0x0000,0xEA);//²¹¹âµÆ£¬Ãé×¼µÆÅÄÉãÊ±¿ª Á¬ÐøÄ£Ê½
-   XM1603_Write_Byte(0x0004,0x01);//ÎÈÏñÊ±³¤0.1s
-   XM1603_Write_Byte(0x0005,0x01);//Ê¶¶Á¼ä¸ô0.1s
-   XM1603_Write_Byte(0x0006,0x05);//µ¥´Î¶ÁÂëÊ±³¤0.5s
-   XM1603_Write_Byte(0x000D,0X00);//Êý¾Ý±àÂë¸ñÊ½ÎªGBK ´®¿ÚÊä³ö
-   XM1603_Write_Byte(0x002C,0X01);  //ÔÊÐíÊ¶¶ÁËùÓÐÌõÂë£¬´ò¿ªÐý×ª¹¦ÄÜ
-   XM1603_Write_Byte(0x003F,0X01);  //ÔÊÐíÊ¶¶ÁQRÂë
-   XM1603_Write_Byte(0x00B0,0X00);//´«ËÍËùÓÐData×Ö·û
-	XM1603_Write_Byte(0x0000,0x0E);
-    USART_ITConfig(XM1603_UART, USART_IT_RXNE, ENABLE);//¿ªÆôÏà¹ØÖÐ¶Ï
+   XM1603_Write_Byte(0x0000,0x01);//è¡¥å…‰ç¯ï¼Œçž„å‡†ç¯æ‹æ‘„æ—¶å¼€ è¿žç»­æ¨¡å¼
+   XM1603_Write_Byte(0x0004,0x01);//ç¨³åƒæ—¶é•¿0.1s
+   XM1603_Write_Byte(0x0005,0x01);//è¯†è¯»é—´éš”0.1s
+   XM1603_Write_Byte(0x0006,0x05);//å•æ¬¡è¯»ç æ—¶é•¿0.5s
+   XM1603_Write_Byte(0x000D,0X00);//æ•°æ®ç¼–ç æ ¼å¼ä¸ºGBK ä¸²å£è¾“å‡º
+   XM1603_Write_Byte(0x002C,0X01);  //å…è®¸è¯†è¯»æ‰€æœ‰æ¡ç ï¼Œæ‰“å¼€æ—‹è½¬åŠŸèƒ½
+   XM1603_Write_Byte(0x003F,0X01);  //å…è®¸è¯†è¯»QRç 
+   XM1603_Write_Byte(0x00B0,0X00);//ä¼ é€æ‰€æœ‰Dataå­—ç¬¦
+	//XM1603_Write_Byte(0x0000,0x0E);
+    USART_ITConfig(XM1603_UART, USART_IT_RXNE, ENABLE);//å¼€å¯ç›¸å…³ä¸­æ–­
 }
 
 
@@ -68,15 +68,15 @@ void XM1603_Write_Boud()         //9600:0x0139  1115200:0x001A
 
 
 
-void XM1603_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
+void XM1603_IRQHandler(void)                	//ä¸²å£1ä¸­æ–­æœåŠ¡ç¨‹åº
 {
-    if(USART_GetITStatus(XM1603_UART, USART_IT_RXNE) != RESET)  //½ÓÊÕÖÐ¶Ï
+    if(USART_GetITStatus(XM1603_UART, USART_IT_RXNE) != RESET)  //æŽ¥æ”¶ä¸­æ–­
     {
-        u8 Res = USART_ReceiveData(XM1603_UART);    //(USART1->DR);	//¶ÁÈ¡½ÓÊÕµ½µÄÊý¾Ý
+        u8 Res = USART_ReceiveData(XM1603_UART);    //(USART1->DR);	//è¯»å–æŽ¥æ”¶åˆ°çš„æ•°æ®
 
         if(1 == QR_allow)
         {
-            if((Res > 0x30) && (Res < 0x34))     // XM1603Ò»¿ªÊ¼»á·¢Ò»¸ö 0x02
+            if((Res > 0x30) && (Res < 0x34))     // XM1603ä¸€å¼€å§‹ä¼šå‘ä¸€ä¸ª 0x02
             {
                 QR_code = Res & 0x0F;
                 if(QR_code == 1)

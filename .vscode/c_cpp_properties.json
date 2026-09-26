@@ -12,9 +12,8 @@
                 "${workspaceFolder}/MDK-ARM/RTE/_hao",
 
                 "${workspaceFolder}/.cmsis/include",
-                "${workspaceFolder}/.pack/Keil/STM32F4xx_DFP.2.14.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
-
-                "${env:LOCALAPPDATA}/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include"
+                "D:/keil5/ARM/PACK/Keil/STM32F4xx_DFP/2.17.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+                "D:/keil5/ARM/PACK/ARM/CMSIS/5.0.1/CMSIS/Include"
             ],
             "defines": [
                 "USE_STDPERIPH_DRIVER",
@@ -24,7 +23,7 @@
                 "__MICROLIB",
                 "__UVISION_VERSION=539"
             ],
-            "compilerPath": "E:\\gcc-arm-none-eabi\\bin\\arm-none-eabi-gcc.exe",
+            "compilerPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gcc.exe",
             "cStandard": "c99",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-arm"

@@ -5,16 +5,16 @@
 
 
 
-extern float Target_Vx_Speed;  		//Ğ¡³µµÄÓÒÒÆÄ¿±êËÙ¶È
-extern float Target_Vy_Speed;  		//Ğ¡³µµÄÇ°½øÄ¿±êËÙ¶È
-extern float Target_W_Speed;  		//Ğ¡³µµÄĞı×ªÄ¿±ê½ÇËÙ¶È
-extern float Target_Position_Vx;  //Ğ¡³µµÄ×óÓÒÒÆÄ¿±êÎ»ÒÆ
-extern float Target_Position_Vy;  //Ğ¡³µµÄÇ°½øÄ¿±êÎ»ÒÆ
-extern float Target_Position_W;  	//Ğ¡³µµÄĞı×ªÄ¿±ê½ÇÎ»ÒÆ
+extern float Target_Vx_Speed;  		//å°è½¦çš„å³ç§»ç›®æ ‡é€Ÿåº¦
+extern float Target_Vy_Speed;  		//å°è½¦çš„å‰è¿›ç›®æ ‡é€Ÿåº¦
+extern float Target_W_Speed;  		//å°è½¦çš„æ—‹è½¬ç›®æ ‡è§’é€Ÿåº¦
+extern float Target_Position_Vx;  //å°è½¦çš„å·¦å³ç§»ç›®æ ‡ä½ç§»
+extern float Target_Position_Vy;  //å°è½¦çš„å‰è¿›ç›®æ ‡ä½ç§»
+extern float Target_Position_W;  	//å°è½¦çš„æ—‹è½¬ç›®æ ‡è§’ä½ç§»
 extern uint32_t out_time;
 
 
-/* ÔË¶¯µÄ»ù±¾¶¯×÷ */
+/* è¿åŠ¨çš„åŸºæœ¬åŠ¨ä½œ */
 void Stop(void);
 void Stop_now(void);
 void Turn_car_angle(uint16_t speed_rpm,int16_t angle_deg);

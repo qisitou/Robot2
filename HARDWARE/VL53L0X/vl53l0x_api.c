@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright © 2016, STMicroelectronics International N.V.
+ Copyright Â© 2016, STMicroelectronics International N.V.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -366,7 +366,7 @@ VL53L0X_Error VL53L0X_SetDeviceAddress(VL53L0X_DEV Dev, uint8_t DeviceAddress)
 
 VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 {
-	
+
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	VL53L0X_DeviceParameters_t CurrentParameters;
 	int i;
@@ -381,7 +381,7 @@ VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 		VL53L0X_REG_VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
 		0xFE,
 		0x01);
-	
+
 #endif
 
 	/* Set I2C standard mode */
@@ -417,7 +417,7 @@ VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 		CurrentParameters.DeviceMode = VL53L0X_DEVICEMODE_SINGLE_RANGING;
 		CurrentParameters.HistogramMode = VL53L0X_HISTOGRAMMODE_DISABLED;
 		PALDevDataSet(Dev, CurrentParameters, CurrentParameters);
-		
+
 	}
 
 	/* Sigma estimator variable */
@@ -855,7 +855,7 @@ VL53L0X_Error VL53L0X_GetDeviceParameters(VL53L0X_DEV Dev,
 
 	if (Status == VL53L0X_ERROR_NONE){
 		pDeviceParameters->XTalkCompensationEnable = 0;
-	
+
 	}
 
 	if (Status == VL53L0X_ERROR_NONE)
@@ -1375,7 +1375,7 @@ VL53L0X_Error VL53L0X_GetInterMeasurementPeriodMilliSeconds(VL53L0X_DEV Dev,
 		&osc_calibrate_val);
 
 	if (Status == VL53L0X_ERROR_NONE) {
-		
+
 		Status = VL53L0X_RdDWord(Dev,
 		VL53L0X_REG_SYSTEM_INTERMEASUREMENT_PERIOD,
 			&IMPeriodMilliSeconds);

@@ -13,7 +13,10 @@
 #define GRAY_CH7  PEin(0)		//灰度传感器通道7，连接到PE0引脚
 #define GRAY_CH8  PEin(1)		//灰度传感器通道8，连接到PE1引脚
 
-
+#define GRAY_front   PBin(6)	//灰度传感器通道前，连接到PB6引脚
+#define GRAY_Right   PCin(4)	//灰度传感器通道右，连接到PC4引脚
+#define GRAY_behind  PAin(7)	//灰度传感器通道后，连接到PA7引脚
+#define GRAY_Left    PBin(7)	//灰度传感器通道左，连接到PB7引脚
 
 void Gray_Init(void);
 

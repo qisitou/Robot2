@@ -2,87 +2,87 @@
 #include "usart3.h"
 #include "stdint.h"
 
-//////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌĞòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßĞí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK Ì½Ë÷ÕßSTM32F407¿ª·¢°å
-//VL53L0X-ÆÕÍ¨²âÁ¿Ä£Ê½ Çı¶¯´úÂë	   
-//ÕıµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//´´½¨ÈÕÆÚ:2017/7/1
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖİÊĞĞÇÒíµç×Ó¿Æ¼¼ÓĞÏŞ¹«Ë¾ 2009-2019
-//All rights reserved									  
-////////////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////////////
+//æœ¬ç¨‹åºåªä¾›å­¦ä¹ ä½¿ç”¨ï¼Œæœªç»ä½œè€…è®¸å¯ï¼Œä¸å¾—ç”¨äºå…¶å®ƒä»»ä½•ç”¨é€”
+//ALIENTEK æ¢ç´¢è€…STM32F407å¼€å‘æ¿
+//VL53L0X-æ™®é€šæµ‹é‡æ¨¡å¼ é©±åŠ¨ä»£ç 
+//æ­£ç‚¹åŸå­@ALIENTEK
+//æŠ€æœ¯è®ºå›:www.openedv.com
+//åˆ›å»ºæ—¥æœŸ:2017/7/1
+//ç‰ˆæœ¬ï¼šV1.0
+//ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶ã€‚
+//Copyright(C) å¹¿å·å¸‚æ˜Ÿç¿¼ç”µå­ç§‘æŠ€æœ‰é™å…¬å¸ 2009-2019
+//All rights reserved
+//////////////////////////////////////////////////////////////////////////////////
 
-VL53L0X_RangingMeasurementData_t vl53l0x_data;//²â¾à²âÁ¿½á¹¹Ìå
-vu16 Distance_data=0;//±£´æ²â¾àÊı¾İ
+VL53L0X_RangingMeasurementData_t vl53l0x_data;//æµ‹è·æµ‹é‡ç»“æ„ä½“
+vu16 Distance_data=0;//ä¿å­˜æµ‹è·æ•°æ®
 
 
-//VL53L0X ²âÁ¿Ä£Ê½ÅäÖÃ
-//dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//mode: 0:Ä¬ÈÏ;1:¸ß¾«¶È;2:³¤¾àÀë
+//VL53L0X æµ‹é‡æ¨¡å¼é…ç½®
+//dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//mode: 0:é»˜è®¤;1:é«˜ç²¾åº¦;2:é•¿è·ç¦»
 VL53L0X_Error vl53l0x_set_mode(VL53L0X_Dev_t *dev,u8 mode)
 {
-	
+
 	 VL53L0X_Error status = VL53L0X_ERROR_NONE;
 	 uint8_t VhvSettings;
 	 uint8_t PhaseCal;
 	 uint32_t refSpadCount;
 	 uint8_t isApertureSpads;
-	
-//	 vl53l0x_reset(dev);//¸´Î»vl53l0x(Æµ·±ÇĞ»»¹¤×÷Ä£Ê½ÈİÒ×µ¼ÖÂ²É¼¯¾àÀëÊı¾İ²»×¼£¬Ğè¼ÓÉÏÕâÒ»´úÂë)
+
+//	 vl53l0x_reset(dev);//å¤ä½vl53l0x(é¢‘ç¹åˆ‡æ¢å·¥ä½œæ¨¡å¼å®¹æ˜“å¯¼è‡´é‡‡é›†è·ç¦»æ•°æ®ä¸å‡†ï¼Œéœ€åŠ ä¸Šè¿™ä¸€ä»£ç )
 	 status = VL53L0X_StaticInit(dev);
 
-     if(AjustOK!=0)//ÒÑĞ£×¼ºÃÁË,Ğ´ÈëĞ£×¼Öµ
+     if(AjustOK!=0)//å·²æ ¡å‡†å¥½äº†,å†™å…¥æ ¡å‡†å€¼
      {
-	    status= VL53L0X_SetReferenceSpads(dev,Vl53l0x_data.refSpadCount,Vl53l0x_data.isApertureSpads);//Éè¶¨SpadsĞ£×¼Öµ
-        if(status!=VL53L0X_ERROR_NONE) goto error;	
-        delay_ms(2);		 
-	    status= VL53L0X_SetRefCalibration(dev,Vl53l0x_data.VhvSettings,Vl53l0x_data.PhaseCal);//Éè¶¨RefĞ£×¼Öµ
+	    status= VL53L0X_SetReferenceSpads(dev,Vl53l0x_data.refSpadCount,Vl53l0x_data.isApertureSpads);//è®¾å®šSpadsæ ¡å‡†å€¼
+        if(status!=VL53L0X_ERROR_NONE) goto error;
+        delay_ms(2);
+	    status= VL53L0X_SetRefCalibration(dev,Vl53l0x_data.VhvSettings,Vl53l0x_data.PhaseCal);//è®¾å®šRefæ ¡å‡†å€¼
 		if(status!=VL53L0X_ERROR_NONE) goto error;
 		 delay_ms(2);
-	    status=VL53L0X_SetOffsetCalibrationDataMicroMeter(dev,Vl53l0x_data.OffsetMicroMeter);//Éè¶¨Æ«ÒÆĞ£×¼Öµ
-		if(status!=VL53L0X_ERROR_NONE) goto error; 
-		 delay_ms(2);
-		status=VL53L0X_SetXTalkCompensationRateMegaCps(dev,Vl53l0x_data.XTalkCompensationRateMegaCps);//Éè¶¨´®ÈÅĞ£×¼Öµ
+	    status=VL53L0X_SetOffsetCalibrationDataMicroMeter(dev,Vl53l0x_data.OffsetMicroMeter);//è®¾å®šåç§»æ ¡å‡†å€¼
 		if(status!=VL53L0X_ERROR_NONE) goto error;
-         delay_ms(2);		 
-		 
+		 delay_ms(2);
+		status=VL53L0X_SetXTalkCompensationRateMegaCps(dev,Vl53l0x_data.XTalkCompensationRateMegaCps);//è®¾å®šä¸²æ‰°æ ¡å‡†å€¼
+		if(status!=VL53L0X_ERROR_NONE) goto error;
+         delay_ms(2);
+
      }
 	 else
 	 {
-		status = VL53L0X_PerformRefCalibration(dev, &VhvSettings, &PhaseCal);//Ref²Î¿¼Ğ£×¼
+		status = VL53L0X_PerformRefCalibration(dev, &VhvSettings, &PhaseCal);//Refå‚è€ƒæ ¡å‡†
 		if(status!=VL53L0X_ERROR_NONE) goto error;
 		delay_ms(2);
-		status = VL53L0X_PerformRefSpadManagement(dev, &refSpadCount, &isApertureSpads);//Ö´ĞĞ²Î¿¼SPAD¹ÜÀí
+		status = VL53L0X_PerformRefSpadManagement(dev, &refSpadCount, &isApertureSpads);//æ‰§è¡Œå‚è€ƒSPADç®¡ç†
 		if(status!=VL53L0X_ERROR_NONE) goto error;
-        delay_ms(2);		 	 
+        delay_ms(2);
 	 }
-	 status = VL53L0X_SetDeviceMode(dev,VL53L0X_DEVICEMODE_SINGLE_RANGING);//Ê¹ÄÜµ¥´Î²âÁ¿Ä£Ê½
+	 status = VL53L0X_SetDeviceMode(dev,VL53L0X_DEVICEMODE_SINGLE_RANGING);//ä½¿èƒ½å•æ¬¡æµ‹é‡æ¨¡å¼
 	 if(status!=VL53L0X_ERROR_NONE) goto error;
 	 delay_ms(2);
-	 status = VL53L0X_SetLimitCheckEnable(dev,VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE,1);//Ê¹ÄÜSIGMA·¶Î§¼ì²é
+	 status = VL53L0X_SetLimitCheckEnable(dev,VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE,1);//ä½¿èƒ½SIGMAèŒƒå›´æ£€æŸ¥
 	 if(status!=VL53L0X_ERROR_NONE) goto error;
 	 delay_ms(2);
-	 status = VL53L0X_SetLimitCheckEnable(dev,VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,1);//Ê¹ÄÜĞÅºÅËÙÂÊ·¶Î§¼ì²é
+	 status = VL53L0X_SetLimitCheckEnable(dev,VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,1);//ä½¿èƒ½ä¿¡å·é€Ÿç‡èŒƒå›´æ£€æŸ¥
 	 if(status!=VL53L0X_ERROR_NONE) goto error;
 	 delay_ms(2);
-	 status = VL53L0X_SetLimitCheckValue(dev,VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE,Mode_data[mode].sigmaLimit);//Éè¶¨SIGMA·¶Î§
+	 status = VL53L0X_SetLimitCheckValue(dev,VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE,Mode_data[mode].sigmaLimit);//è®¾å®šSIGMAèŒƒå›´
 	 if(status!=VL53L0X_ERROR_NONE) goto error;
 	 delay_ms(2);
-	 status = VL53L0X_SetLimitCheckValue(dev,VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,Mode_data[mode].signalLimit);//Éè¶¨ĞÅºÅËÙÂÊ·¶Î§·¶Î§
+	 status = VL53L0X_SetLimitCheckValue(dev,VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,Mode_data[mode].signalLimit);//è®¾å®šä¿¡å·é€Ÿç‡èŒƒå›´èŒƒå›´
 	 if(status!=VL53L0X_ERROR_NONE) goto error;
 	 delay_ms(2);
-	 status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(dev,Mode_data[mode].timingBudget);//Éè¶¨ÍêÕû²â¾à×î³¤Ê±¼ä
+	 status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(dev,Mode_data[mode].timingBudget);//è®¾å®šå®Œæ•´æµ‹è·æœ€é•¿æ—¶é—´
 	 if(status!=VL53L0X_ERROR_NONE) goto error;
 	 delay_ms(2);
-	 status = VL53L0X_SetVcselPulsePeriod(dev, VL53L0X_VCSEL_PERIOD_PRE_RANGE, Mode_data[mode].preRangeVcselPeriod);//Éè¶¨VCSELÂö³åÖÜÆÚ
+	 status = VL53L0X_SetVcselPulsePeriod(dev, VL53L0X_VCSEL_PERIOD_PRE_RANGE, Mode_data[mode].preRangeVcselPeriod);//è®¾å®šVCSELè„‰å†²å‘¨æœŸ
 	 if(status!=VL53L0X_ERROR_NONE) goto error;
 	 delay_ms(2);
-	 status = VL53L0X_SetVcselPulsePeriod(dev, VL53L0X_VCSEL_PERIOD_FINAL_RANGE, Mode_data[mode].finalRangeVcselPeriod);//Éè¶¨VCSELÂö³åÖÜÆÚ·¶Î§
-	 
-	 error://´íÎóĞÅÏ¢
+	 status = VL53L0X_SetVcselPulsePeriod(dev, VL53L0X_VCSEL_PERIOD_FINAL_RANGE, Mode_data[mode].finalRangeVcselPeriod);//è®¾å®šVCSELè„‰å†²å‘¨æœŸèŒƒå›´
+
+	 error://é”™è¯¯ä¿¡æ¯
 	 if(status!=VL53L0X_ERROR_NONE)
 	 {
 		//print_pal_error(status);
@@ -91,20 +91,20 @@ VL53L0X_Error vl53l0x_set_mode(VL53L0X_Dev_t *dev,u8 mode)
 		return status;
 	 }
 	 return status;
-	
-}	
 
-//VL53L0X µ¥´Î¾àÀë²âÁ¿º¯Êı
-//dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//pdata:±£´æ²âÁ¿Êı¾İ½á¹¹Ìå
+}
+
+//VL53L0X å•æ¬¡è·ç¦»æµ‹é‡å‡½æ•°
+//dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//pdata:ä¿å­˜æµ‹é‡æ•°æ®ç»“æ„ä½“
 uint16_t vl53l0x_start_single_test(VL53L0X_Dev_t *dev,VL53L0X_RangingMeasurementData_t *pdata)
 {
     delay_ms(1);
 	VL53L0X_Error status = VL53L0X_ERROR_NONE;
-	
-	status = VL53L0X_PerformSingleRangingMeasurement(dev, pdata);//Ö´ĞĞµ¥´Î²â¾à²¢»ñÈ¡²â¾à²âÁ¿Êı¾İ
-	
-	if(status !=VL53L0X_ERROR_NONE) 
+
+	status = VL53L0X_PerformSingleRangingMeasurement(dev, pdata);//æ‰§è¡Œå•æ¬¡æµ‹è·å¹¶è·å–æµ‹è·æµ‹é‡æ•°æ®
+
+	if(status !=VL53L0X_ERROR_NONE)
 		return status;
 
    return status;
@@ -112,71 +112,71 @@ uint16_t vl53l0x_start_single_test(VL53L0X_Dev_t *dev,VL53L0X_RangingMeasurement
 
 
 
-//Æô¶¯ÆÕÍ¨²âÁ¿
-//dev£ºÉè±¸I2C²ÎÊı½á¹¹Ìå
-//modeÄ£Ê½ÅäÖÃ 0:Ä¬ÈÏ;1:¸ß¾«¶È;2:³¤¾àÀë
+//å¯åŠ¨æ™®é€šæµ‹é‡
+//devï¼šè®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//modeæ¨¡å¼é…ç½® 0:é»˜è®¤;1:é«˜ç²¾åº¦;2:é•¿è·ç¦»
 void vl53l0x_general_start(VL53L0X_Dev_t *dev,u8 mode)
 {
-	//static char buf[VL53L0X_MAX_STRING_LENGTH];//²âÊÔÄ£Ê½×Ö·û´®×Ö·û»º³åÇø
-	//VL53L0X_Error Status=VL53L0X_ERROR_NONE;//¹¤×÷×´Ì¬
+	//static char buf[VL53L0X_MAX_STRING_LENGTH];//æµ‹è¯•æ¨¡å¼å­—ç¬¦ä¸²å­—ç¬¦ç¼“å†²åŒº
+	//VL53L0X_Error Status=VL53L0X_ERROR_NONE;//å·¥ä½œçŠ¶æ€
 
-	//mode_string(mode,buf);//ÏÔÊ¾µ±Ç°ÅäÖÃµÄÄ£Ê½
-	vl53l0x_set_mode(dev,0);//ÉèÖÃ²âÁ¿Ä£Ê½
-//	Status = vl53l0x_start_single_test(dev,&vl53l0x_data);//Ö´ĞĞÒ»´Î²âÁ¿
-	
+	//mode_string(mode,buf);//æ˜¾ç¤ºå½“å‰é…ç½®çš„æ¨¡å¼
+	vl53l0x_set_mode(dev,0);//è®¾ç½®æµ‹é‡æ¨¡å¼
+//	Status = vl53l0x_start_single_test(dev,&vl53l0x_data);//æ‰§è¡Œä¸€æ¬¡æµ‹é‡
+
 }
 
-//vl53l0xÆÕÍ¨²âÁ¿Ä£Ê½UI
+//vl53l0xæ™®é€šæµ‹é‡æ¨¡å¼UI
 void general_ui(void)
 {
 //	LCD_Fill(30,140+20,300,300,WHITE);
-//	POINT_COLOR=RED;        //ÉèÖÃ×ÖÌåÎªºìÉ« 
+//	POINT_COLOR=RED;        //è®¾ç½®å­—ä½“ä¸ºçº¢è‰²
 //	LCD_ShowString(30,140+30,300,16,16,"General Mode                  ");
 //	LCD_ShowString(30,140+55,300,16,16,"KEY1: Switch working mode    ");
-//	POINT_COLOR=BLUE;       //ÉèÖÃ×ÖÌåÎªÀ¶É« 
+//	POINT_COLOR=BLUE;       //è®¾ç½®å­—ä½“ä¸ºè“è‰²
 //	LCD_ShowString(30,140+75,300,16,16, "KEY_UP: Return menu    ");
 //	LCD_ShowString(30,140+95,300,16,16, "KEY0:   Default        ");
-	
+
 }
 
-//vl53l0xÆÕÍ¨²âÁ¿Ä£Ê½²âÊÔ
-//dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
+//vl53l0xæ™®é€šæµ‹é‡æ¨¡å¼æµ‹è¯•
+//dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
 void vl53l0x_general_test(VL53L0X_Dev_t *dev)
 {
-	
-	
-	
+
+
+
 //	u8 key=0;
 //	u8 i=0;
 	//u8 mode=0;
 //	LED1=1;
-	//general_ui();//ÏÔÊ¾ÆÕÍ¨²âÁ¿Ä£Ê½UI
-	
+	//general_ui();//æ˜¾ç¤ºæ™®é€šæµ‹é‡æ¨¡å¼UI
+
 	//while(1)
-	{	
+	{
 
 		//key = KEY_Scan(0);
-		
-//		if(key==WKUP_PRES)	break;//·µ»ØÖ÷²Ëµ¥ 	
-		
-	//	else if(key==KEY1_PRES)//Ñ¡Ôñ¹¤×÷Ä£Ê½
+
+//		if(key==WKUP_PRES)	break;//è¿”å›ä¸»èœå•
+
+	//	else if(key==KEY1_PRES)//é€‰æ‹©å·¥ä½œæ¨¡å¼
 		{
            //  mode++;
 			 //if(mode==4) mode=0;
 			// switch(mode)
 			 {
-//				 case Default_Mode:  LCD_ShowString(95,140+95,300,16,16, "Default        "); break;//Ä¬ÈÏ
-//				 case HIGH_ACCURACY: LCD_ShowString(95,140+95,300,16,16, "High Accuracy  "); break;//¸ß¾«¶È
-//				 case LONG_RANGE:    LCD_ShowString(95,140+95,300,16,16, "Long Range     "); break;//³¤¾àÀë
-//				 case HIGH_SPEED:    LCD_ShowString(95,140+95,300,16,16, "High Speed     "); break;//¸ßËÙ
+//				 case Default_Mode:  LCD_ShowString(95,140+95,300,16,16, "Default        "); break;//é»˜è®¤
+//				 case HIGH_ACCURACY: LCD_ShowString(95,140+95,300,16,16, "High Accuracy  "); break;//é«˜ç²¾åº¦
+//				 case LONG_RANGE:    LCD_ShowString(95,140+95,300,16,16, "Long Range     "); break;//é•¿è·ç¦»
+//				 case HIGH_SPEED:    LCD_ShowString(95,140+95,300,16,16, "High Speed     "); break;//é«˜é€Ÿ
 			 }
-		}	
-//		else if(key==KEY0_PRES)//Æô¶¯²âÁ¿
+		}
+//		else if(key==KEY0_PRES)//å¯åŠ¨æµ‹é‡
 		{
 			//vl53l0x_general_start(dev,mode);
 	       // general_ui();
 		//	mode=0;
-		}			
+		}
 		//i++;
 		//if(i==5)
 		{
@@ -186,5 +186,5 @@ void vl53l0x_general_test(VL53L0X_Dev_t *dev)
 		//delay_ms(50);
 
 	}
-	
+
 }

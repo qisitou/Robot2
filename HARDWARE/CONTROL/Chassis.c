@@ -37,12 +37,6 @@ void Chassis_InverseMotionControl(float v_x,float v_y,float w)
  */
 void Chassis_SetSpeed(float vx,float vy,float Yaw,float Start_Angle)
 {
-	if(Chassis_AnglePID.Need_Value == 180  && Yaw < 0 )
-		Yaw= Yaw+360;
-			
-	if(Chassis_AnglePID.Need_Value == -180 && Yaw > 0 )
-		Yaw= Yaw-360;
-
 	float theta = Yaw-Start_Angle;
 
 	theta=theta*Data_Deg2Rad;
@@ -50,7 +44,7 @@ void Chassis_SetSpeed(float vx,float vy,float Yaw,float Start_Angle)
 	float vx_=vx*cosf(theta)+vy*sinf(theta);
 	float vy_=-vx*sinf(theta)+vy*cosf(theta);
 	
-	PID_PositionCalc(&Chassis_AnglePID,Yaw);
+	PID_AngleCalc(&Chassis_AnglePID,Yaw);
 	Chassis_InverseMotionControl(vx_,vy_,Chassis_AnglePID.OUT);
 }
 
@@ -257,16 +251,18 @@ void Chassis_MovePath(Chassis_Path Path)
  */
 void Chassis_TurnRight(void)
 {
-	Chassis_AnglePID.Need_Value-=90;
-
+	Chassis_AnglePID.Need_Value-=180;
+	float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
+	PID_PositionSetParameter(&Chassis_AnglePID,8,0,3);
 	while(1)
 	{
-		PID_PositionCalc(&Chassis_AnglePID,Yaw_Angle);
-		if(Chassis_AnglePID.Ek==0 && Chassis_AnglePID.Ek_1==0)break;
+		PID_AngleCalc(&Chassis_AnglePID,Yaw_Angle);
+		if(Chassis_AnglePID.Ek==0)break;
 		
-		Chassis_InverseMotionControl(0,0,Chassis_AnglePID.OUT);
+		Chassis_InverseMotionControl(0,0,Chassis_AnglePID.OUT*3);
 		delay_ms(2);
 	}
+	PID_PositionSetParameter(&Chassis_AnglePID,SaveKp,SaveKi,SaveKd);//恢复PID
 	Chassis_InverseMotionControl(0,0,0);
 }
 
@@ -277,16 +273,16 @@ void Chassis_TurnRight(void)
  *返回类型:无
  *备注:无
  */
-void Chassis_TurnLeft(void)
+void Chassis_TurnLeft(float yaw)
 {
-	Chassis_AnglePID.Need_Value+=90;
+	Chassis_AnglePID.Need_Value+=yaw;
 	float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
-	PID_PositionSetParameter(&Chassis_AnglePID,8,0,3);
+	PID_PositionSetParameter(&Chassis_AnglePID,10,0,4);
 
 	while(1)
 	{
-		PID_PositionCalc(&Chassis_AnglePID,Yaw_Angle);
-		if(Chassis_AnglePID.Ek==0 && Chassis_AnglePID.Ek_1==0)break;
+		PID_AngleCalc(&Chassis_AnglePID,Yaw_Angle);
+		if(Chassis_AnglePID.Ek==0)break;
 		
 		Chassis_InverseMotionControl(0,0,Chassis_AnglePID.OUT*4);
 		delay_ms(2);
@@ -304,3 +300,4 @@ void Chassis_Stop(void)
 {
 	Chassis_InverseMotionControl(0,0,0);
 }
+

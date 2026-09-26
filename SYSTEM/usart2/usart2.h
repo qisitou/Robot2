@@ -2,12 +2,12 @@
 #define __USART2_H
 #include "stm32f4xx_conf.h"
 
-	
-#define EN_USART2_RX 			1		//ʹ�ܣ�1��/��ֹ��0������2����
-	  	
+
+#define EN_USART2_RX 			1		//使能（1）/禁止（0）串口2接收
 
 
-//����봮���жϽ��գ��벻Ҫע�����º궨��
+
+//如果想串口中断接收，请不要注释以下宏定义
 
 
 extern u16 U2_Rx_Index;

@@ -1,117 +1,117 @@
 #include "vl53l0x_platform.h"
 
-//////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌĞòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßĞí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK Ì½Ë÷ÕßSTM32F407¿ª·¢°å
-//VL53L0X µ×²ãÇı¶¯ ´úÂë	   
-//ÕıµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//ĞŞ¸ÄÈÕÆÚ:2017/7/1
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖİÊĞĞÇÒíµç×Ó¿Æ¼¼ÓĞÏŞ¹«Ë¾ 2009-2019
-//All rights reserved									  
+//////////////////////////////////////////////////////////////////////////////////
+//æœ¬ç¨‹åºåªä¾›å­¦ä¹ ä½¿ç”¨ï¼Œæœªç»ä½œè€…è®¸å¯ï¼Œä¸å¾—ç”¨äºå…¶å®ƒä»»ä½•ç”¨é€”
+//ALIENTEK æ¢ç´¢è€…STM32F407å¼€å‘æ¿
+//VL53L0X åº•å±‚é©±åŠ¨ ä»£ç 
+//æ­£ç‚¹åŸå­@ALIENTEK
+//æŠ€æœ¯è®ºå›:www.openedv.com
+//ä¿®æ”¹æ—¥æœŸ:2017/7/1
+//ç‰ˆæœ¬ï¼šV1.0
+//ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶ã€‚
+//Copyright(C) å¹¿å·å¸‚æ˜Ÿç¿¼ç”µå­ç§‘æŠ€æœ‰é™å…¬å¸ 2009-2019
+//All rights reserved
 //////////////////////////////////////////////////////////////////////////////////
 
-//VL53L0XÁ¬ĞøĞ´Êı¾İ
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:´íÎó
+//VL53L0Xè¿ç»­å†™æ•°æ®
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:é”™è¯¯
 VL53L0X_Error VL53L0X_WriteMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata,uint32_t count)
 {
-	
+
 	 VL53L0X_Error Status = VL53L0X_ERROR_NONE;
-	
+
 	 int32_t status_int = 0;
-	
+
 	 uint8_t deviceAddress;
-	
+
 	 if(count >=VL53L0X_MAX_I2C_XFER_SIZE)
 	 {
 		 Status = VL53L0X_ERROR_INVALID_PARAMS;
 	 }
-	
+
 	 deviceAddress = Dev->I2cDevAddr;
-	
+
 	 status_int = VL53L0X_write_multi(deviceAddress, index, pdata, count);
-	
+
 	 if(status_int !=0)
 	   Status = VL53L0X_ERROR_CONTROL_INTERFACE;
-	
+
 	 return Status;
-	
+
 }
 
-//VL53L0XÁ¬Ğø¶ÁÊı¾İ
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:´íÎó
+//VL53L0Xè¿ç»­è¯»æ•°æ®
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:é”™è¯¯
 VL53L0X_Error VL53L0X_ReadMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata,uint32_t count)
 {
-	
+
 	 VL53L0X_Error Status = VL53L0X_ERROR_NONE;
-	
+
 	 int32_t status_int;
-	
+
 	 uint8_t deviceAddress;
-	
+
 	 if(count >=VL53L0X_MAX_I2C_XFER_SIZE)
 	 {
 		 Status = VL53L0X_ERROR_INVALID_PARAMS;
-	 } 
-	 
+	 }
+
 	 deviceAddress = Dev->I2cDevAddr;
-	 
+
 	 status_int = VL53L0X_read_multi(deviceAddress, index, pdata, count);
-	 
+
 	 if(status_int!=0)
 	   Status = VL53L0X_ERROR_CONTROL_INTERFACE;
-	 
+
 	 return Status;
-	
+
 }
 
-//VL53L0X Ğ´µ¥×Ö½Ú¼Ä´æÆ÷
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:Ê§°Ü
+//VL53L0X å†™å•å­—èŠ‚å¯„å­˜å™¨
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:å¤±è´¥
 VL53L0X_Error VL53L0X_WrByte(VL53L0X_DEV Dev, uint8_t index, uint8_t data)
 {
-	
+
 	 VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	 int32_t status_int;
 	 uint8_t deviceAddress;
-	
+
 	 deviceAddress = Dev->I2cDevAddr;
-	
+
 	 status_int = VL53L0X_write_byte(deviceAddress,index,data);
-	
+
 	 if(status_int!=0)
 		Status = VL53L0X_ERROR_CONTROL_INTERFACE;
-	
+
 	 return Status;
-	 
+
 }
 
-//VL53L0X Ğ´×Ö£¨2×Ö½Ú£©¼Ä´æÆ÷
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:Ê§°Ü
+//VL53L0X å†™å­—ï¼ˆ2å­—èŠ‚ï¼‰å¯„å­˜å™¨
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:å¤±è´¥
 VL53L0X_Error VL53L0X_WrWord(VL53L0X_DEV Dev, uint8_t index, uint16_t data)
 {
-	
+
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	int32_t status_int;
 	uint8_t deviceAddress;
@@ -124,19 +124,19 @@ VL53L0X_Error VL53L0X_WrWord(VL53L0X_DEV Dev, uint8_t index, uint16_t data)
 	 Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
 	return Status;
-	
+
 }
 
-//VL53L0X Ğ´Ë«×Ö£¨4×Ö½Ú£©¼Ä´æÆ÷
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:Ê§°Ü
+//VL53L0X å†™åŒå­—ï¼ˆ4å­—èŠ‚ï¼‰å¯„å­˜å™¨
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:å¤±è´¥
 VL53L0X_Error VL53L0X_WrDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t data)
 {
-	
+
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	int32_t status_int;
 	uint8_t deviceAddress;
@@ -149,19 +149,19 @@ VL53L0X_Error VL53L0X_WrDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t data)
 	 Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
 	return Status;
-	
+
 }
 
-//VL53L0X ÍşĞ²°²È«¸üĞÂ(¶Á/ĞŞ¸Ä/Ğ´)µ¥×Ö½Ú¼Ä´æÆ÷
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//AndData:8Î»ÓëÊı¾İ
-//OrData:8Î»»òÊı¾İ
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:´íÎó
+//VL53L0X å¨èƒå®‰å…¨æ›´æ–°(è¯»/ä¿®æ”¹/å†™)å•å­—èŠ‚å¯„å­˜å™¨
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//AndData:8ä½ä¸æ•°æ®
+//OrData:8ä½æˆ–æ•°æ®
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:é”™è¯¯
 VL53L0X_Error VL53L0X_UpdateByte(VL53L0X_DEV Dev, uint8_t index, uint8_t AndData, uint8_t OrData)
 {
-	 
+
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	int32_t status_int;
 	uint8_t deviceAddress;
@@ -178,27 +178,27 @@ VL53L0X_Error VL53L0X_UpdateByte(VL53L0X_DEV Dev, uint8_t index, uint8_t AndData
 	{
 	  data = (data & AndData) | OrData;
 	  status_int = VL53L0X_write_byte(deviceAddress, index,data);
-	 
-	 
+
+
 	  if(status_int !=0)
 		 Status = VL53L0X_ERROR_CONTROL_INTERFACE;
-	 
+
 	}
 
 	return Status;
-	  
+
 }
 
-//VL53L0X ¶Áµ¥×Ö½Ú¼Ä´æÆ÷
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:´íÎó
+//VL53L0X è¯»å•å­—èŠ‚å¯„å­˜å™¨
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:é”™è¯¯
 VL53L0X_Error VL53L0X_RdByte(VL53L0X_DEV Dev, uint8_t index, uint8_t *data)
 {
-	
+
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	int32_t status_int;
 	uint8_t deviceAddress;
@@ -214,16 +214,16 @@ VL53L0X_Error VL53L0X_RdByte(VL53L0X_DEV Dev, uint8_t index, uint8_t *data)
 
 }
 
-//VL53L0X ¶Á×Ö£¨2×Ö½Ú£©¼Ä´æÆ÷
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:´íÎó
+//VL53L0X è¯»å­—ï¼ˆ2å­—èŠ‚ï¼‰å¯„å­˜å™¨
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:é”™è¯¯
 VL53L0X_Error VL53L0X_RdWord(VL53L0X_DEV Dev, uint8_t index, uint16_t *data)
 {
-	
+
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	int32_t status_int;
 	uint8_t deviceAddress;
@@ -231,24 +231,24 @@ VL53L0X_Error VL53L0X_RdWord(VL53L0X_DEV Dev, uint8_t index, uint16_t *data)
 	deviceAddress = Dev->I2cDevAddr;
 
 	status_int = VL53L0X_read_word(deviceAddress, index, data);
-	
+
 	if(status_int !=0)
 	  Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
 	return Status;
-	  
+
 }
 
-//VL53L0X ¶ÁË«×Ö£¨4×Ö½Ú£©¼Ä´æÆ÷
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//index:Æ«ÒÆµØÖ·
-//pdata:Êı¾İÖ¸Õë
-//count:³¤¶È
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:´íÎó
+//VL53L0X è¯»åŒå­—ï¼ˆ4å­—èŠ‚ï¼‰å¯„å­˜å™¨
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//index:åç§»åœ°å€
+//pdata:æ•°æ®æŒ‡é’ˆ
+//count:é•¿åº¦
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:é”™è¯¯
 VL53L0X_Error  VL53L0X_RdDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t *data)
 {
-	
+
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
     uint8_t deviceAddress;
@@ -263,20 +263,20 @@ VL53L0X_Error  VL53L0X_RdDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t *data)
     return Status;
 }
 
-//VL53L0X µ×²ãÑÓÊ±º¯Êı
-//Dev:Éè±¸I2C²ÎÊı½á¹¹Ìå
-//·µ»ØÖµ: 0:³É¹¦  
-//       ÆäËû:´íÎó
+//VL53L0X åº•å±‚å»¶æ—¶å‡½æ•°
+//Dev:è®¾å¤‡I2Cå‚æ•°ç»“æ„ä½“
+//è¿”å›å€¼: 0:æˆåŠŸ
+//       å…¶ä»–:é”™è¯¯
 #define VL53L0X_POLLINGDELAY_LOOPNB  250
 VL53L0X_Error VL53L0X_PollingDelay(VL53L0X_DEV Dev)
 {
-	
+
     VL53L0X_Error status = VL53L0X_ERROR_NONE;
     volatile uint32_t i;
 
     for(i=0;i<VL53L0X_POLLINGDELAY_LOOPNB;i++){
         //Do nothing
-        
+
     }
 
     return status;

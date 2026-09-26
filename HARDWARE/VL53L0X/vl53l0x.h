@@ -13,63 +13,63 @@
 
 typedef struct
 {
-	float vx;			//ºáÏòËÙ¶È								ÏòÓÒÎªÕı
-	float vy;			//×İÏòËÙ¶È								ÏòÇ°ÎªÕı
-	float vw;			//YawĞı×ª½Ç¶È							ÄæÊ±ÕëÎªÕı
-	float dis_target;	//Ä¿±ê¾àÀë								
-	float dis_now;		//µ±Ç°¾àÀë
-}Avoid_Data_t; //±ÜÕÏÊı¾İ½á¹¹Ìå
+	float vx;			//æ¨ªå‘é€Ÿåº¦								å‘å³ä¸ºæ­£
+	float vy;			//çºµå‘é€Ÿåº¦								å‘å‰ä¸ºæ­£
+	float vw;			//Yawæ—‹è½¬è§’åº¦							é€†æ—¶é’ˆä¸ºæ­£
+	float dis_target;	//ç›®æ ‡è·ç¦»
+	float dis_now;		//å½“å‰è·ç¦»
+}Avoid_Data_t; //é¿éšœæ•°æ®ç»“æ„ä½“
 
-extern Avoid_Data_t avoid_data;//±ÜÕÏÊı¾İ
+extern Avoid_Data_t avoid_data;//é¿éšœæ•°æ®
 
 /*====================My_define=====================*/
 
 
-//VL53L0X´«¸ĞÆ÷ÉÏµçÄ¬ÈÏIICµØÖ·Îª0X52(²»°üº¬×îµÍÎ»)
+//VL53L0Xä¼ æ„Ÿå™¨ä¸Šç”µé»˜è®¤IICåœ°å€ä¸º0X52(ä¸åŒ…å«æœ€ä½ä½)
 #define VL53L0X_Addr 0x52
 
 
-//Ê¹ÄÜ2.8V IOµçÆ½Ä£Ê½
+//ä½¿èƒ½2.8V IOç”µå¹³æ¨¡å¼
 #define USE_I2C_2V8  1
 
-//²âÁ¿Ä£Ê½
-#define Default_Mode   0// Ä¬ÈÏ
-#define HIGH_ACCURACY  1//¸ß¾«¶È
-#define LONG_RANGE     2//³¤¾àÀë
-#define HIGH_SPEED     3//¸ßËÙ
+//æµ‹é‡æ¨¡å¼
+#define Default_Mode   0// é»˜è®¤
+#define HIGH_ACCURACY  1//é«˜ç²¾åº¦
+#define LONG_RANGE     2//é•¿è·ç¦»
+#define HIGH_SPEED     3//é«˜é€Ÿ
 
-//vl53l0xÄ£Ê½ÅäÖÃ²ÎÊı¼¯
+//vl53l0xæ¨¡å¼é…ç½®å‚æ•°é›†
 typedef __packed struct
 {
-	FixPoint1616_t signalLimit;    //Signal¼«ÏŞÊıÖµ 
-	FixPoint1616_t sigmaLimit;     //Sigmal¼«ÏŞÊıÖµ
-	uint32_t timingBudget;         //²ÉÑùÊ±¼äÖÜÆÚ
-	uint8_t preRangeVcselPeriod ;  //VCSELÂö³åÖÜÆÚ
-	uint8_t finalRangeVcselPeriod ;//VCSELÂö³åÖÜÆÚ·¶Î§
-	
+	FixPoint1616_t signalLimit;    //Signalæé™æ•°å€¼
+	FixPoint1616_t sigmaLimit;     //Sigmalæé™æ•°å€¼
+	uint32_t timingBudget;         //é‡‡æ ·æ—¶é—´å‘¨æœŸ
+	uint8_t preRangeVcselPeriod ;  //VCSELè„‰å†²å‘¨æœŸ
+	uint8_t finalRangeVcselPeriod ;//VCSELè„‰å†²å‘¨æœŸèŒƒå›´
+
 }mode_data;
 
 
-extern VL53L0X_Dev_t vl53l0x_dev;//Éè±¸I2CÊı¾İ²ÎÊı
-extern VL53L0X_Dev_t vl53l0x_dev0;//Éè±¸I2CÊı¾İ²ÎÊı
-extern VL53L0X_Dev_t vl53l0x_dev1;//Éè±¸I2CÊı¾İ²ÎÊı
-extern VL53L0X_Dev_t vl53l0x_dev2;//Éè±¸I2CÊı¾İ²ÎÊı
-extern VL53L0X_Dev_t vl53l0x_dev3;//Éè±¸I2CÊı¾İ²ÎÊı
-extern VL53L0X_Dev_t vl53l0x_dev4;//Éè±¸I2CÊı¾İ²ÎÊı
-extern VL53L0X_DeviceInfo_t vl53l0x_dev_info;//Éè±¸ID°æ±¾ĞÅÏ¢
+extern VL53L0X_Dev_t vl53l0x_dev;//è®¾å¤‡I2Cæ•°æ®å‚æ•°
+extern VL53L0X_Dev_t vl53l0x_dev0;//è®¾å¤‡I2Cæ•°æ®å‚æ•°
+extern VL53L0X_Dev_t vl53l0x_dev1;//è®¾å¤‡I2Cæ•°æ®å‚æ•°
+extern VL53L0X_Dev_t vl53l0x_dev2;//è®¾å¤‡I2Cæ•°æ®å‚æ•°
+extern VL53L0X_Dev_t vl53l0x_dev3;//è®¾å¤‡I2Cæ•°æ®å‚æ•°
+extern VL53L0X_Dev_t vl53l0x_dev4;//è®¾å¤‡I2Cæ•°æ®å‚æ•°
+extern VL53L0X_DeviceInfo_t vl53l0x_dev_info;//è®¾å¤‡IDç‰ˆæœ¬ä¿¡æ¯
 extern mode_data Mode_data[];
 extern uint8_t AjustOK;
 
 void VL53L0X_All_Init(void);
 
-VL53L0X_Error vl53l0x_init(VL53L0X_Dev_t *dev,uint8_t id);//³õÊ¼»¯vl53l0x
-void print_pal_error(VL53L0X_Error Status);//´íÎóĞÅÏ¢´òÓ¡
-void mode_string(u8 mode,char *buf);//Ä£Ê½×Ö·û´®ÏÔÊ¾
-void vl53l0x_test(void);//vl53l0x²âÊÔ
-void vl53l0x_reset(VL53L0X_Dev_t *dev);//vl53l0x¸´Î»
+VL53L0X_Error vl53l0x_init(VL53L0X_Dev_t *dev,uint8_t id);//åˆå§‹åŒ–vl53l0x
+void print_pal_error(VL53L0X_Error Status);//é”™è¯¯ä¿¡æ¯æ‰“å°
+void mode_string(u8 mode,char *buf);//æ¨¡å¼å­—ç¬¦ä¸²æ˜¾ç¤º
+void vl53l0x_test(void);//vl53l0xæµ‹è¯•
+void vl53l0x_reset(VL53L0X_Dev_t *dev);//vl53l0xå¤ä½
 
-void vl53l0x_info(void);//»ñÈ¡vl53l0xÉè±¸IDĞÅÏ¢
-void One_measurement(u8 mode);//»ñÈ¡Ò»´Î²âÁ¿¾àÀëÊı¾İ
+void vl53l0x_info(void);//è·å–vl53l0xè®¾å¤‡IDä¿¡æ¯
+void One_measurement(u8 mode);//è·å–ä¸€æ¬¡æµ‹é‡è·ç¦»æ•°æ®
 #endif
 
 

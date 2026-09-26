@@ -3,32 +3,32 @@
 
 #include "vl53l0x.h"
 
-//////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌĞòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßĞí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK Ì½Ë÷ÕßSTM32F407¿ª·¢°å
-//VL53L0X-Ğ£×¼Ä£Ê½ Çı¶¯´úÂë	   
-//ÕıµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//´´½¨ÈÕÆÚ:2017/7/1
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖİÊĞĞÇÒíµç×Ó¿Æ¼¼ÓĞÏŞ¹«Ë¾ 2009-2019
-//All rights reserved									  
-////////////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////////////
+//æœ¬ç¨‹åºåªä¾›å­¦ä¹ ä½¿ç”¨ï¼Œæœªç»ä½œè€…è®¸å¯ï¼Œä¸å¾—ç”¨äºå…¶å®ƒä»»ä½•ç”¨é€”
+//ALIENTEK æ¢ç´¢è€…STM32F407å¼€å‘æ¿
+//VL53L0X-æ ¡å‡†æ¨¡å¼ é©±åŠ¨ä»£ç 
+//æ­£ç‚¹åŸå­@ALIENTEK
+//æŠ€æœ¯è®ºå›:www.openedv.com
+//åˆ›å»ºæ—¥æœŸ:2017/7/1
+//ç‰ˆæœ¬ï¼šV1.0
+//ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶ã€‚
+//Copyright(C) å¹¿å·å¸‚æ˜Ÿç¿¼ç”µå­ç§‘æŠ€æœ‰é™å…¬å¸ 2009-2019
+//All rights reserved
+//////////////////////////////////////////////////////////////////////////////////
 
-//vl53l0x´«¸ĞÆ÷Ğ£×¼ĞÅÏ¢½á¹¹Ìå¶¨Òå
+//vl53l0xä¼ æ„Ÿå™¨æ ¡å‡†ä¿¡æ¯ç»“æ„ä½“å®šä¹‰
 typedef __packed struct
 {
-	uint8_t  adjustok;                    //Ğ£×¼³É¹¦±êÖ¾£¬0XAA£¬ÒÑĞ£×¼;ÆäËû£¬Î´Ğ£×¼
-	uint8_t  isApertureSpads;             //ApertureSpadsÖµ
-	uint8_t  VhvSettings;                 //VhvSettingsÖµ
-	uint8_t  PhaseCal;                    //PhaseCalÖµ
-	uint32_t XTalkCalDistance;            //XTalkCalDistanceÖµ
-	uint32_t XTalkCompensationRateMegaCps;//XTalkCompensationRateMegaCpsÖµ
-	uint32_t CalDistanceMilliMeter;       //CalDistanceMilliMeterÖµ
-	int32_t  OffsetMicroMeter;            //OffsetMicroMeterÖµ
-	uint32_t refSpadCount;                //refSpadCountÖµ
-	
+	uint8_t  adjustok;                    //æ ¡å‡†æˆåŠŸæ ‡å¿—ï¼Œ0XAAï¼Œå·²æ ¡å‡†;å…¶ä»–ï¼Œæœªæ ¡å‡†
+	uint8_t  isApertureSpads;             //ApertureSpadså€¼
+	uint8_t  VhvSettings;                 //VhvSettingså€¼
+	uint8_t  PhaseCal;                    //PhaseCalå€¼
+	uint32_t XTalkCalDistance;            //XTalkCalDistanceå€¼
+	uint32_t XTalkCompensationRateMegaCps;//XTalkCompensationRateMegaCpså€¼
+	uint32_t CalDistanceMilliMeter;       //CalDistanceMilliMeterå€¼
+	int32_t  OffsetMicroMeter;            //OffsetMicroMeterå€¼
+	uint32_t refSpadCount;                //refSpadCountå€¼
+
 }_vl53l0x_adjust;
 
 extern _vl53l0x_adjust Vl53l0x_data;

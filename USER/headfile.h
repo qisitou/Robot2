@@ -43,6 +43,7 @@
 #include "Infrared.h"
 #include "turnplate.h"
 #include "filter.h"
+#include "openmv.h"
 
 extern int a;
 

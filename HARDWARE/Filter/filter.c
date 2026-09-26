@@ -3,13 +3,13 @@
 static bool CheckCompare(int32_t value, int32_t threshold, CompareType cmp)
 {
     switch (cmp) {
-        case CMP_GT: return value >  threshold;
-        case CMP_GE: return value >= threshold;
-        case CMP_LT: return value <  threshold;
-        case CMP_LE: return value <= threshold;
-        case CMP_EQ: return value == threshold;
-        case CMP_NE: return value != threshold;
-        default:     return false;
+        case CMP_GT: return value >  threshold;   // 大于 (>)          value 大于 threshold 时返回 true
+        case CMP_GE: return value >= threshold;   // 大于等于 (>=)      value 不小于 threshold 时返回 true
+        case CMP_LT: return value <  threshold;   // 小于 (<)          value 小于 threshold 时返回 true
+        case CMP_LE: return value <= threshold;   // 小于等于 (<=)      value 不大于 threshold 时返回 true
+        case CMP_EQ: return value == threshold;   // 等于 (==)         value 等于 threshold 时返回 true
+        case CMP_NE: return value != threshold;   // 不等于 (!=)       value 不等于 threshold 时返回 true
+        default:     return false;                // 未知比较类型，一律返回 false（视为不满足条件）
     }
 }
 

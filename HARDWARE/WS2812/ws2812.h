@@ -17,7 +17,7 @@ typedef struct
     u8 B;
 } RGBColor_TypeDef;
 
-#define Pixel_S1_NUM 4		//µÆÖé RGBÊýÁ¿
+#define Pixel_S1_NUM 4		//ç¯ç  RGBæ•°é‡
 extern u8 pixelBuffer[Pixel_S1_NUM][24];
 extern const RGBColor_TypeDef RED ;
 extern const RGBColor_TypeDef LIGHT_RED ;
@@ -38,9 +38,9 @@ extern const RGBColor_TypeDef PURPLE;
 
 
 /**************************************
- ËµÃ÷£º
+ è¯´æ˜Žï¼š
 
- WS2812B±àÂëÐ­Òé(µ¥Î»£ºns)£º
+ WS2812Bç¼–ç åè®®(å•ä½ï¼šns)ï¼š
        min     typ     max
 bit 0
  T0H:  220      -      420
@@ -54,12 +54,12 @@ bit 1
  RESET: time > 300us
 
 
-8·ÖÆµAPB1£¬42MHz/8 = 5.25MHz
-Ê±ÖÓÖÜÆÚÎª£º1/5.25/1e6 = 1.90e-7=190ns
+8åˆ†é¢‘APB1ï¼Œ42MHz/8 = 5.25MHz
+æ—¶é’Ÿå‘¨æœŸä¸ºï¼š1/5.25/1e6 = 1.90e-7=190ns
 **************************************/
 
-#define CODE0 0xC0 // 0Âë, ·¢ËÍµÄÊ±¼ä 1100 0000  ¸ù¾Ý²»Í¬µÄSCKÊÊµ±µ÷Õû
-#define CODE1 0xFC // 1Âë, ·¢ËÍµÄÊ±¼ä 1111 1100
+#define CODE0 0xC0 // 0ç , å‘é€çš„æ—¶é—´ 1100 0000  æ ¹æ®ä¸åŒçš„SCKé€‚å½“è°ƒæ•´
+#define CODE1 0xFC // 1ç , å‘é€çš„æ—¶é—´ 1111 1100
 
 void WS2812b_Configuration(void);
 

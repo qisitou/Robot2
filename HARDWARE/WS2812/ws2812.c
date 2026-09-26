@@ -21,52 +21,52 @@ const RGBColor_TypeDef WHITE    = {255,255,255};
 const RGBColor_TypeDef LIGHT_WHITE    = {10,10,10};
 const RGBColor_TypeDef PURPLE   = {65,105,225};
 
-u8 pixelBuffer[Pixel_S1_NUM][24];                     //µÆÖé
+u8 pixelBuffer[Pixel_S1_NUM][24];                     //ç¯ç 
 
 
 /***********************************************************************************************
 **     name: WS2812b_Configuration
-** function:  WS2812B SPI DMA×ÜÏß³õÊ¼»¯
+** function:  WS2812B SPI DMAæ€»çº¿åˆå§‹åŒ–
 **parameter: void
 ************************************************************************************************/
 /*****************************************
- ËµÃ÷£º
- SPI2£º
- Òı½Å£ºÊ¹ÓÃµÄÊÇPB15Òı½Å
- Ê±ÖÓ£º¸ù¾İ×ÜÏßÍ¼£¬SPI2ÓÉAPB1(42MHz)·ÖÆµ¶øÀ´
+ è¯´æ˜ï¼š
+ SPI2ï¼š
+ å¼•è„šï¼šä½¿ç”¨çš„æ˜¯PB15å¼•è„š
+ æ—¶é’Ÿï¼šæ ¹æ®æ€»çº¿å›¾ï¼ŒSPI2ç”±APB1(42MHz)åˆ†é¢‘è€Œæ¥
  ****************************************/
 void WS2812b_Configuration(void){
 
     GPIO_InitTypeDef  GPIO_InitStructure;
     SPI_InitTypeDef  SPI_InitStructure;
 
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE); //Ê¹ÄÜGPIOBÊ±ÖÓ
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);  //Ê¹ÄÜSPI2Ê±ÖÓ
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE); //ä½¿èƒ½GPIOBæ—¶é’Ÿ
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);  //ä½¿èƒ½SPI2æ—¶é’Ÿ
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;                    //PB15¸´ÓÃ¹¦ÄÜÊä³ö
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;                  //¸´ÓÃ¹¦ÄÜ
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;                //ÍÆÍìÊä³ö
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;                    //PB15å¤ç”¨åŠŸèƒ½è¾“å‡º
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;                  //å¤ç”¨åŠŸèƒ½
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;                //æ¨æŒ½è¾“å‡º
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;            //100MHz
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;                  //ÉÏÀ­
-    GPIO_Init(GPIOB, &GPIO_InitStructure);                        //³õÊ¼»¯
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;                  //ä¸Šæ‹‰
+    GPIO_Init(GPIOB, &GPIO_InitStructure);                        //åˆå§‹åŒ–
 
-    GPIO_PinAFConfig(GPIOB,GPIO_PinSource15,GPIO_AF_SPI2);        //PB15¸´ÓÃÎª SPI2
+    GPIO_PinAFConfig(GPIOB,GPIO_PinSource15,GPIO_AF_SPI2);        //PB15å¤ç”¨ä¸º SPI2
 
-    SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;    //ÉèÖÃSPIµ¥Ïò»òÕßË«ÏòµÄÊı¾İÄ£Ê½:SPIÉèÖÃÎªË«ÏßË«ÏòÈ«Ë«¹¤
-    SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		                      //ÉèÖÃSPI¹¤×÷Ä£Ê½:ÉèÖÃÎªÖ÷SPI
-    SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;		                  //ÉèÖÃSPIµÄÊı¾İ´óĞ¡:SPI·¢ËÍ½ÓÊÕ8Î»Ö¡½á¹¹
-    SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;		                        //´®ĞĞÍ¬²½Ê±ÖÓµÄ¿ÕÏĞ×´Ì¬Îª¸ßµçÆ½
-    SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	                        //´®ĞĞÍ¬²½Ê±ÖÓµÄµÚ¶ş¸öÌø±äÑØ£¨ÉÏÉı»òÏÂ½µ£©Êı¾İ±»²ÉÑù
-    SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		                          //NSSĞÅºÅÓÉÓ²¼ş£¨NSS¹Ü½Å£©»¹ÊÇÈí¼ş£¨Ê¹ÓÃSSIÎ»£©¹ÜÀí:ÄÚ²¿NSSĞÅºÅÓĞSSIÎ»¿ØÖÆ
+    SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;    //è®¾ç½®SPIå•å‘æˆ–è€…åŒå‘çš„æ•°æ®æ¨¡å¼:SPIè®¾ç½®ä¸ºåŒçº¿åŒå‘å…¨åŒå·¥
+    SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		                      //è®¾ç½®SPIå·¥ä½œæ¨¡å¼:è®¾ç½®ä¸ºä¸»SPI
+    SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;		                  //è®¾ç½®SPIçš„æ•°æ®å¤§å°:SPIå‘é€æ¥æ”¶8ä½å¸§ç»“æ„
+    SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;		                        //ä¸²è¡ŒåŒæ­¥æ—¶é’Ÿçš„ç©ºé—²çŠ¶æ€ä¸ºé«˜ç”µå¹³
+    SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	                        //ä¸²è¡ŒåŒæ­¥æ—¶é’Ÿçš„ç¬¬äºŒä¸ªè·³å˜æ²¿ï¼ˆä¸Šå‡æˆ–ä¸‹é™ï¼‰æ•°æ®è¢«é‡‡æ ·
+    SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		                          //NSSä¿¡å·ç”±ç¡¬ä»¶ï¼ˆNSSç®¡è„šï¼‰è¿˜æ˜¯è½¯ä»¶ï¼ˆä½¿ç”¨SSIä½ï¼‰ç®¡ç†:å†…éƒ¨NSSä¿¡å·æœ‰SSIä½æ§åˆ¶
     SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;		//42M/8=5.25M
-    SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	                  //Ö¸¶¨Êı¾İ´«Êä´ÓMSBÎ»»¹ÊÇLSBÎ»¿ªÊ¼:Êı¾İ´«Êä´ÓMSBÎ»¿ªÊ¼
-    SPI_InitStructure.SPI_CRCPolynomial = 7;	                            //CRCÖµ¼ÆËãµÄ¶àÏîÊ½
-    SPI_Init(SPI2, &SPI_InitStructure);                                   //¸ù¾İSPI_InitStructÖĞÖ¸¶¨µÄ²ÎÊı³õÊ¼»¯ÍâÉèSPIx¼Ä´æÆ÷
+    SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	                  //æŒ‡å®šæ•°æ®ä¼ è¾“ä»MSBä½è¿˜æ˜¯LSBä½å¼€å§‹:æ•°æ®ä¼ è¾“ä»MSBä½å¼€å§‹
+    SPI_InitStructure.SPI_CRCPolynomial = 7;	                            //CRCå€¼è®¡ç®—çš„å¤šé¡¹å¼
+    SPI_Init(SPI2, &SPI_InitStructure);                                   //æ ¹æ®SPI_InitStructä¸­æŒ‡å®šçš„å‚æ•°åˆå§‹åŒ–å¤–è®¾SPIxå¯„å­˜å™¨
 
-    SPI_Cmd(SPI2, ENABLE);                                                //Ê¹ÄÜSPIÍâÉè
+    SPI_Cmd(SPI2, ENABLE);                                                //ä½¿èƒ½SPIå¤–è®¾
 
-    SPI_I2S_DMACmd(SPI2, SPI_I2S_DMAReq_Tx, ENABLE);	        					 // Ê¹ÄÜSPI2µÄDMA·¢ËÍ
-    MYDMA_Enable(DMA1_Stream4, Pixel_S1_NUM * 24);              					// ¿ªÆôDMA´«Êä
+    SPI_I2S_DMACmd(SPI2, SPI_I2S_DMAReq_Tx, ENABLE);	        					 // ä½¿èƒ½SPI2çš„DMAå‘é€
+    MYDMA_Enable(DMA1_Stream4, Pixel_S1_NUM * 24);              					// å¼€å¯DMAä¼ è¾“
 
     delay_ms(1);
     RGB_BLACK(Pixel_S1_NUM);                                  			 //RGB RESET
@@ -75,7 +75,7 @@ void WS2812b_Configuration(void){
 
 /***********************************************************************************************
 **     name: rgb_WriteColor
-** function: Éè¶¨Ä³¸öRGB LEDµÄÑÕÉ«
+** function: è®¾å®šæŸä¸ªRGB LEDçš„é¢œè‰²
 **parameter: void
 **   return: void
 ************************************************************************************************/
@@ -108,16 +108,16 @@ void rgb_WriteColor(u16 LedId, RGBColor_TypeDef Color){
 ************************************************************************************************/
 void rgb_SendArray(void){
 
-     if(DMA_GetFlagStatus(DMA1_Stream4,DMA_FLAG_TCIF4) != RESET){ //µÈ´ıDMA1_Stream4´«ÊäÍê³É
-        DMA_ClearFlag(DMA1_Stream4,DMA_FLAG_TCIF4);                //Çå³ıDMA1_Stream4´«ÊäÍê³É±êÖ¾
-        SPI_I2S_DMACmd(SPI2, SPI_I2S_DMAReq_Tx, ENABLE);	         // Ê¹ÄÜSPI2µÄDMA·¢ËÍ
-        MYDMA_Enable(DMA1_Stream4, Pixel_S1_NUM * 24);              // ¿ªÆôDMA´«Êä
+     if(DMA_GetFlagStatus(DMA1_Stream4,DMA_FLAG_TCIF4) != RESET){ //ç­‰å¾…DMA1_Stream4ä¼ è¾“å®Œæˆ
+        DMA_ClearFlag(DMA1_Stream4,DMA_FLAG_TCIF4);                //æ¸…é™¤DMA1_Stream4ä¼ è¾“å®Œæˆæ ‡å¿—
+        SPI_I2S_DMACmd(SPI2, SPI_I2S_DMAReq_Tx, ENABLE);	         // ä½¿èƒ½SPI2çš„DMAå‘é€
+        MYDMA_Enable(DMA1_Stream4, Pixel_S1_NUM * 24);              // å¼€å¯DMAä¼ è¾“
 			}
 }
 
 /***********************************************************************************************
 **     name: rgb_SetColor
-** function: Éè¶¨Ä³¸öRGB LEDµÄÑÕÉ«,²¢·¢ËÍ
+** function: è®¾å®šæŸä¸ªRGB LEDçš„é¢œè‰²,å¹¶å‘é€
 **parameter: void
 **   return: void
 ************************************************************************************************/
@@ -131,8 +131,8 @@ void rgb_SetColor(u16 LedId, RGBColor_TypeDef Color){
 
 /***********************************************************************************************
 **     name: RGB_RED
-** function: Éè¶¨ÑÕÉ«ÎªRED
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºRED
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_RED(u16 Pixel_LEN){
@@ -149,8 +149,8 @@ void RGB_RED(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_PURPLE
-** function: Éè¶¨ÑÕÉ«ÎªPURPLE
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºPURPLE
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_PURPLE(u16 Pixel_LEN){
@@ -165,8 +165,8 @@ void RGB_PURPLE(u16 Pixel_LEN){
 }
 /***********************************************************************************************
 **     name: RGB_SKY
-** function: Éè¶¨ÑÕÉ«ÎªSKY
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºSKY
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_SKY(u16 Pixel_LEN){
@@ -182,8 +182,8 @@ void RGB_SKY(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_MAGENTA
-** function: Éè¶¨ÑÕÉ«ÎªMAGENTA
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºMAGENTA
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_MAGENTA(u16 Pixel_LEN){
@@ -199,8 +199,8 @@ void RGB_MAGENTA(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_ORANGE
-** function: Éè¶¨ÑÕÉ«ÎªORANGE
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºORANGE
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_ORANGE(u16 Pixel_LEN){
@@ -216,8 +216,8 @@ void RGB_ORANGE(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_GREEN
-** function: Éè¶¨ÑÕÉ«ÎªGREEN
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºGREEN
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_GREEN(u16 Pixel_LEN){
@@ -233,8 +233,8 @@ void RGB_GREEN(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_BLUE
-** function: Éè¶¨ÑÕÉ«ÎªBLUE
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºBLUE
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_BLUE(u16 Pixel_LEN){
@@ -250,8 +250,8 @@ void RGB_BLUE(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_YELLOW
-** function: Éè¶¨ÑÕÉ«ÎªYELLOW
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºYELLOW
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_YELLOW(u16 Pixel_LEN){
@@ -267,8 +267,8 @@ void RGB_YELLOW(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_BLACK
-** function: Éè¶¨ÑÕÉ«Îªall-off
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºall-off
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_BLACK(u16 Pixel_LEN){
@@ -285,8 +285,8 @@ void RGB_BLACK(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: RGB_WHITE
-** function: Éè¶¨ÑÕÉ«ÎªWHITE
-**parameter: Pixel_LEN µÆÖéÊı
+** function: è®¾å®šé¢œè‰²ä¸ºWHITE
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void RGB_WHITE(u16 Pixel_LEN){
@@ -302,9 +302,9 @@ void RGB_WHITE(u16 Pixel_LEN){
 
 /***********************************************************************************************
 **     name: Colourful_Wheel
-** function: ½«ÑÕÉ«×ª»»ÎªGRB
-**parameter: WheelPos ÑÕÉ«ÊıÖµ
-**   return: RGBColor_TypeDef ÑÕÉ«GRB
+** function: å°†é¢œè‰²è½¬æ¢ä¸ºGRB
+**parameter: WheelPos é¢œè‰²æ•°å€¼
+**   return: RGBColor_TypeDef é¢œè‰²GRB
 ************************************************************************************************/
 RGBColor_TypeDef Colourful_Wheel(u8 WheelPos){
 
@@ -335,8 +335,8 @@ RGBColor_TypeDef Colourful_Wheel(u8 WheelPos){
 
 /***********************************************************************************************
 **     name: rainbowCycle
-** function: ºôÎüµÆ¹¦ÄÜ
-**parameter: Pixel_LEN µÆÖéÊı
+** function: å‘¼å¸ç¯åŠŸèƒ½
+**parameter: Pixel_LEN ç¯ç æ•°
 **   return: void
 ************************************************************************************************/
 void rainbowCycle(u16 Pixel_LEN){

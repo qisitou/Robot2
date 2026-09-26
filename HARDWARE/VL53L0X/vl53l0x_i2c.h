@@ -3,33 +3,33 @@
 
 #include "sys.h"
 
-//////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌÐòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßÐí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK Ì½Ë÷ÕßSTM32F407¿ª·¢°å
-//VL53L0X IICÇý¶¯ ´úÂë	   
-//ÕýµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//ÐÞ¸ÄÈÕÆÚ:2017/7/1
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓÐ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖÝÊÐÐÇÒíµç×Ó¿Æ¼¼ÓÐÏÞ¹«Ë¾ 2009-2019
-//All rights reserved									  
 //////////////////////////////////////////////////////////////////////////////////
 
-//IO·½ÏòÉèÖÃ
-//#define VL_SDA_IN()  {GPIOA->MODER&=~(3<<(4*2));GPIOA->MODER|=0<<4*2;}	//PB10ÊäÈëÄ£Ê½
-//#define VL_SDA_OUT() {GPIOA->MODER&=~(3<<(4*2));GPIOA->MODER|=1<<4*2;}    //PB10Êä³öÄ£Ê½
 
 
-//IO²Ù×÷º¯Êý	 
+
+
+
+
+
+
+//All rights reserved
+//////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
 //#define VL_IIC_SCL    PCout(10) 		//SCL
-//#define VL_IIC_SDA    PAout(4) 		//SDA	 
-//#define VL_READ_SDA   PAin(4) 		    //ÊäÈëSDA 
+//#define VL_IIC_SDA    PAout(4) 		//SDA
+
 
 #define VL_IIC_PORT		GPIOG
 #define VL_IIC_SCL    PGout(4) 		//SCL
-#define VL_IIC_SDA    PGout(3) 		//SDA	 
-#define VL_READ_SDA   PGin(3) 	    //ÊäÈëSDA 
+#define VL_IIC_SDA    PGout(3) 		//SDA
+#define VL_READ_SDA   PGin(3)
 
 //×´Ì¬
 #define STATUS_OK       0x00
@@ -39,41 +39,45 @@
 #define   VL53L0X_XshutPin_0    GPIO_Pin_15
 
 #define   VL53L0X_XshutPort_1   GPIOD
-#define   VL53L0X_XshutPin_1    GPIO_Pin_0
+#define   VL53L0X_XshutPin_1    GPIO_Pin_15
 
 #define   VL53L0X_XshutPort_2   GPIOD
-#define   VL53L0X_XshutPin_2    GPIO_Pin_1
+#define   VL53L0X_XshutPin_2    GPIO_Pin_0
 
-#define   VL53L0X_XshutPort_3   GPIOE
-#define   VL53L0X_XshutPin_3    GPIO_Pin_13
+#define   VL53L0X_XshutPort_3   GPIOD
+#define   VL53L0X_XshutPin_3    GPIO_Pin_1
 
 #define   VL53L0X_XshutPort_4   GPIOE
-#define   VL53L0X_XshutPin_4    GPIO_Pin_14
+#define   VL53L0X_XshutPin_4    GPIO_Pin_13
+
+#define   VL53L0X_XshutPort_5   GPIOE
+#define   VL53L0X_XshutPin_5    GPIO_Pin_14
 
 #define	  VL53L0X_SCL_PIN		GPIO_Pin_4
-#define	  VL53L0X_SDA_PIN		GPIO_Pin_3	
+#define	  VL53L0X_SDA_PIN		GPIO_Pin_3
 
-//¿ØÖÆXshutµçÆ½,´Ó¶øÊ¹ÄÜVL53L0X¹¤×÷ 1:Ê¹ÄÜ 0:¹Ø±Õ
+
 #define VL53L0X_Xshut_0 PDout(15)
-#define VL53L0X_Xshut_1 PDout(0)
-#define VL53L0X_Xshut_2 PDout(1)
-#define VL53L0X_Xshut_3 PEout(13)
-#define VL53L0X_Xshut_4 PEout(14)
+#define VL53L0X_Xshut_1 PDout(15)
+#define VL53L0X_Xshut_2 PDout(0)
+#define VL53L0X_Xshut_3 PDout(1)
+#define VL53L0X_Xshut_4 PEout(13)
+#define VL53L0X_Xshut_5 PEout(14)
 
-//IIC²Ù×÷º¯Êý
-void VL53L0X_i2c_init(void);//³õÊ¼»¯IICµÄIO¿Ú
+//IICæ“ä½œå‡½æ•°
+void VL53L0X_i2c_init(void);//åˆå§‹åŒ–IICçš„IOå£
 
-u8 VL53L0X_write_byte(u8 address,u8 index,u8 data);              //IICÐ´Ò»¸ö8Î»Êý¾Ý
-u8 VL53L0X_write_word(u8 address,u8 index,u16 data);             //IICÐ´Ò»¸ö16Î»Êý¾Ý
-u8 VL53L0X_write_dword(u8 address,u8 index,u32 data);            //IICÐ´Ò»¸ö32Î»Êý¾Ý
-u8 VL53L0X_write_multi(u8 address, u8 index,u8 *pdata,u16 count);//IICÁ¬ÐøÐ´
+u8 VL53L0X_write_byte(u8 address,u8 index,u8 data);              //IICå†™ä¸€ä¸ª8ä½æ•°æ®
+u8 VL53L0X_write_word(u8 address,u8 index,u16 data);             //IICå†™ä¸€ä¸ª16ä½æ•°æ®
+u8 VL53L0X_write_dword(u8 address,u8 index,u32 data);            //IICå†™ä¸€ä¸ª32ä½æ•°æ®
+u8 VL53L0X_write_multi(u8 address, u8 index,u8 *pdata,u16 count);//IICè¿žç»­å†™
 
-u8 VL53L0X_read_byte(u8 address,u8 index,u8 *pdata);             //IIC¶ÁÒ»¸ö8Î»Êý¾Ý
-u8 VL53L0X_read_word(u8 address,u8 index,u16 *pdata);            //IIC¶ÁÒ»¸ö16Î»Êý¾Ý
-u8 VL53L0X_read_dword(u8 address,u8 index,u32 *pdata);           //IIC¶ÁÒ»¸ö32Î»Êý¾Ý
-u8 VL53L0X_read_multi(u8 address,u8 index,u8 *pdata,u16 count);  //IICÁ¬Ðø¶Á
+u8 VL53L0X_read_byte(u8 address,u8 index,u8 *pdata);             //IICè¯»ä¸€ä¸ª8ä½æ•°æ®
+u8 VL53L0X_read_word(u8 address,u8 index,u16 *pdata);            //IICè¯»ä¸€ä¸ª16ä½æ•°æ®
+u8 VL53L0X_read_dword(u8 address,u8 index,u32 *pdata);           //IICè¯»ä¸€ä¸ª32ä½æ•°æ®
+u8 VL53L0X_read_multi(u8 address,u8 index,u8 *pdata,u16 count);  //IICè¿žç»­è¯»
 
 
-#endif 
+#endif
 
 

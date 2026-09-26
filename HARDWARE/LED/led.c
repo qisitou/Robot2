@@ -11,7 +11,7 @@ void LED_Init(void)    //初始化LED引脚
 
   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);//使能GPIOD时钟
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
@@ -19,8 +19,8 @@ void LED_Init(void)    //初始化LED引脚
   GPIO_Init(GPIOD, &GPIO_InitStructure);//初始化
 
 
-  GPIO_SetBits(GPIOD,GPIO_Pin_4);//关闭
-  //GPIO_ResetBits(GPIOD,GPIO_Pin_4);//打开
+  //GPIO_SetBits(GPIOD,GPIO_Pin_3);//关闭
+  GPIO_ResetBits(GPIOD,GPIO_Pin_3);//打开
 
 }
 

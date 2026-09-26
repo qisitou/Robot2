@@ -1,11 +1,11 @@
 /******************************************************************************
-                        �豸��IM948ģ��֮��Ĵ���ͨ�ſ�
-�汾: V1.04
-��¼: 1������ ���ټƺ����������̿�����
-      2������ �ų�У׼��ʼ����
-      3������ �����������Զ�У����ʶ����
-      4������ ���þ�ֹ����ģʽ�Ĵ���ʱ��
-      5������ �����ϴ�Ȧ����֧������͸��
+                        设备与IM948模块之间的串口通信库
+版本: V1.04
+记录: 1、增加 加速计和陀螺仪量程可设置
+      2、增加 磁场校准开始命令
+      3、增加 设置陀螺仪自动校正标识命令
+      4、增加 设置静止节能模式的触发时长
+      5、增加 设置上传圈数和支持数据透传
 *******************************************************************************/
 #include <usart2.h>
 #include <delay.h>
@@ -13,7 +13,7 @@
 #include "headfile.h"
 
 
-U8 targetDeviceAddress=255; // ͨ�ŵ�ַ����Ϊ0-254ָ�����豸��ַ����Ϊ255��ָ���豸(���㲥), ����Ҫʹ��485������ʽͨ��ʱͨ���ò���ѡ��Ҫ�������豸���������Ǵ���1��1ͨ����Ϊ�㲥��ַ255����
+U8 targetDeviceAddress=255; // 通信地址，设为0-254指定则设备地址，设为255则不指定设备(即广播), 当需要使用485总线形式通信时通过该参数选中要操作的设备，若仅仅是串口1对1通信设为广播地址255即可
 
 uint8_t u[3];
 volatile float Yaw_Angle=0;
@@ -67,12 +67,12 @@ void Dbp_U8_buf(char *sBeginInfo, char *sEndInfo,
 static void Cmd_Write(U8 *pBuf, int Len);
 static void Cmd_RxUnpack(U8 *buf, U8 DLen);
 /**
- * ����CMD����
+ * 发送CMD命令
  *
- * @param pDat Ҫ���͵�������
- * @param DLen ������ĳ���
+ * @param pDat 要发送的数据体
+ * @param DLen 数据体的长度
  *
- * @return int 0=�ɹ�, -1=ʧ��
+ * @return int 0=成功, -1=失败
  */
 int Cmd_PackAndTx(U8 *pDat, U8 DLen)
 {
@@ -81,103 +81,103 @@ int Cmd_PackAndTx(U8 *pDat, U8 DLen)
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff}; // ���Ͱ����� ��ͷ50�ֽ���ǰ���룬���ڻ��ѿ��ܴ���˯��״̬��ģ��
+         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff}; // 发送包缓存 开头50字节是前导码，用于唤醒可能处于睡眠状态的模块
 
     if((DLen == 0) || (DLen > CmdPacketMaxDatSizeTx) || (pDat==NULL))
-    {// �Ƿ�����
+    {// 非法参数
         return -1;
     }
 
-    buf[50] = CmdPacket_Begin; // ��ʼ��
-    buf[51] = targetDeviceAddress; // Ŀǰ�豸��ַ��
-    buf[52] = DLen;  // ����
-    Memcpy(&buf[53], pDat, DLen); // ������
-    buf[53+DLen] = CalcSum1(&buf[51], DLen+2);// CS �� ��ַ�뿪ʼ�㵽���������
-    buf[54+DLen] = CmdPacket_End; // ������
+    buf[50] = CmdPacket_Begin; // 起始码
+    buf[51] = targetDeviceAddress; // 目前设备地址码
+    buf[52] = DLen;  // 长度
+    Memcpy(&buf[53], pDat, DLen); // 数据体
+    buf[53+DLen] = CalcSum1(&buf[51], DLen+2);// CS 从 地址码开始算到数据体结束
+    buf[54+DLen] = CmdPacket_End; // 结束码
 
     Cmd_Write(buf, DLen+55);
     return 0;
 }
 /**
- * ���ڲ������ݰ�, �û�ֻ��ѽ��յ���ÿ�ֽ����ݴ���ú�������
- * @param byte ������յ���ÿ�ֽ�����
- * @return U8 1=���յ��������ݰ�, 0δ��ȡ���������ݰ�
+ * 用于捕获数据包, 用户只需把接收到的每字节数据传入该函数即可
+ * @param byte 传入接收到的每字节数据
+ * @return U8 1=接收到完整数据包, 0未获取到完整数据包
  */
 U8 Cmd_GetPkt(U8 byte)
 {
-    static U8 CS=0; // У���
+    static U8 CS=0; // 校验和
     static U8 i=0;
     static U8 RxIndex=0;
 
-    static U8 buf[5+CmdPacketMaxDatSizeRx]; // ���հ�����
-    #define cmdBegin    buf[0]  // ��ʼ��
-    #define cmdAddress  buf[1]  // ͨ�ŵ�ַ
-    #define cmdLen      buf[2]  // ����
-    #define cmdDat     &buf[3]  // ������
-    #define cmdCS       buf[3+cmdLen] // У���
-    #define cmdEnd      buf[4+cmdLen] // ������
+    static U8 buf[5+CmdPacketMaxDatSizeRx]; // 接收包缓存
+    #define cmdBegin    buf[0]  // 起始码
+    #define cmdAddress  buf[1]  // 通信地址
+    #define cmdLen      buf[2]  // 长度
+    #define cmdDat     &buf[3]  // 数据体
+    #define cmdCS       buf[3+cmdLen] // 校验和
+    #define cmdEnd      buf[4+cmdLen] // 结束码
 
-    CS += byte; // �������ݱ߼���У���룬У����Ϊ��ַ�뿪ʼ(������ַ��)��У����֮ǰ�����ݵĺ�
+    CS += byte; // 边收数据边计算校验码，校验码为地址码开始(包含地址码)到校验码之前的数据的和
     switch (RxIndex)
     {
-    case 0: // ��ʼ��
+    case 0: // 起始码
         if (byte == CmdPacket_Begin)
         {
             i = 0;
             buf[i++] = CmdPacket_Begin;
-            CS = 0; // �¸��ֽڿ�ʼ����У����
+            CS = 0; // 下个字节开始计算校验码
             RxIndex = 1;
         }
         break;
-    case 1: // ������ĵ�ַ��
+    case 1: // 数据体的地址码
         buf[i++] = byte;
         if (byte == 255)
-        { // 255�ǹ㲥��ַ��ģ����Ϊ�ӻ������ĵ�ַ���ɻ����255
+        { // 255是广播地址，模块作为从机，它的地址不可会出现255
             RxIndex = 0;
             break;
         }
         RxIndex++;
         break;
-    case 2: // ������ĳ���
+    case 2: // 数据体的长度
         buf[i++] = byte;
         if ((byte > CmdPacketMaxDatSizeRx) || (byte == 0))
-        { // ������Ч
+        { // 长度无效
             RxIndex = 0;
             break;
         }
         RxIndex++;
         break;
-    case 3: // ��ȡ�����������
+    case 3: // 获取数据体的数据
         buf[i++] = byte;
         if (i >= cmdLen+3)
-        { // ������������
+        { // 已收完数据体
             RxIndex++;
         }
         break;
-    case 4: // �Ա� Ч����
+    case 4: // 对比 效验码
         CS -= byte;
         if (CS == byte)
-        {// У����ȷ
+        {// 校验正确
             buf[i++] = byte;
             RxIndex++;
         }
         else
-        {// У��ʧ��
+        {// 校验失败
             RxIndex = 0;
         }
         break;
-    case 5: // ������
+    case 5: // 结束码
         RxIndex = 0;
         if (byte == CmdPacket_End)
-        {// ����������
+        {// 捕获到完整包
             buf[i++] = byte;
 
             if ((targetDeviceAddress == cmdAddress) || (targetDeviceAddress == 255))
-            {// ��ַƥ�䣬��Ŀ���豸���������� �Ŵ���
+            {// 地址匹配，是目标设备发来的数据 才处理
                 Dbp_U8_buf("rx: ", "\r\n",
                            "%02X ",
                            buf, i);
-                Cmd_RxUnpack(&buf[3], i-5); // �������ݰ���������
+                Cmd_RxUnpack(&buf[3], i-5); // 处理数据包的数据体
 				//				printf("6666\n");
                 return 1;
             }
@@ -192,44 +192,44 @@ U8 Cmd_GetPkt(U8 byte)
 }
 
 
-// ================================ģ��Ĳ���ָ��=================================
+// ================================模块的操作指令=================================
 
-// ˯�ߴ�����
+// 睡眠传感器
 void Cmd_02(void)
 {
     U8 buf[1] = {0x02};
     //Dbp("\r\nsensor off--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// ���Ѵ�����
+// 唤醒传感器
 void Cmd_03(void)
 {
     U8 buf[1] = {0x03};
     //Dbp("\r\nsensor on--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// �ر����������ϱ�
+// 关闭数据主动上报
 void Cmd_18(void)
 {
     U8 buf[1] = {0x18};
     //Dbp("\r\nauto report off--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// �������������ϱ�
+// 开启数据主动上报
 void Cmd_19(void)
 {
     U8 buf[1] = {0x19};
    //Dbp("\r\nauto report on--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// ��ȡ1�ζ��ĵĹ�������
+// 获取1次订阅的功能数据
 void Cmd_11(void)
 {
     U8 buf[1] = {0x11};
     Dbp("\r\nget report--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// ��ȡ�豸���Ժ�״̬
+// 获取设备属性和状态
 void Cmd_10(void)
 {
     U8 buf[1] = {0x10};
@@ -237,17 +237,17 @@ void Cmd_10(void)
     Cmd_PackAndTx(buf, 1);
 }
 /**
- * �����豸����
- * @param accStill    �ߵ�-��ֹ״̬���ٶȷ�ֵ ��λdm/s?
- * @param stillToZero �ߵ�-��ֹ�����ٶ�(��λcm/s) 0:������ 255:��������
- * @param moveToZero  �ߵ�-��̬�����ٶ�(��λcm/s) 0:������
- * @param isCompassOn 1=�迪���ų� 0=��رմų�
- * @param barometerFilter ��ѹ�Ƶ��˲��ȼ�[ȡֵ0-3],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
- * @param reportHz ���������ϱ��Ĵ���֡��[ȡֵ0-250HZ], 0��ʾ0.5HZ
- * @param gyroFilter    �������˲�ϵ��[ȡֵ0-2],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
- * @param accFilter     ���ټ��˲�ϵ��[ȡֵ0-4],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
- * @param compassFilter �������˲�ϵ��[ȡֵ0-9],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
- * @param Cmd_ReportTag ���ܶ��ı�ʶ
+ * 设置设备参数
+ * @param accStill    惯导-静止状态加速度阀值 单位dm/s?
+ * @param stillToZero 惯导-静止归零速度(单位cm/s) 0:不归零 255:立即归零
+ * @param moveToZero  惯导-动态归零速度(单位cm/s) 0:不归零
+ * @param isCompassOn 1=需开启磁场 0=需关闭磁场
+ * @param barometerFilter 气压计的滤波等级[取值0-3],数值越大越平稳但实时性越差
+ * @param reportHz 数据主动上报的传输帧率[取值0-250HZ], 0表示0.5HZ
+ * @param gyroFilter    陀螺仪滤波系数[取值0-2],数值越大越平稳但实时性越差
+ * @param accFilter     加速计滤波系数[取值0-4],数值越大越平稳但实时性越差
+ * @param compassFilter 磁力计滤波系数[取值0-9],数值越大越平稳但实时性越差
+ * @param Cmd_ReportTag 功能订阅标识
  */
 void Cmd_12(U8 accStill, U8 stillToZero, U8 moveToZero,  U8 isCompassOn, U8 barometerFilter, U8 reportHz, U8 gyroFilter, U8 accFilter, U8 compassFilter, U16 Cmd_ReportTag)
 {
@@ -255,7 +255,7 @@ void Cmd_12(U8 accStill, U8 stillToZero, U8 moveToZero,  U8 isCompassOn, U8 baro
     buf[1] = accStill;
     buf[2] = stillToZero;
     buf[3] = moveToZero;
-    buf[4] = ((barometerFilter&3)<<1) | (isCompassOn&1); // bit[2-1]: BMP280���˲��ȼ�[ȡֵ0-3]   bit[0]: 1=�ѿ����ų� 0=�ѹرմų�
+    buf[4] = ((barometerFilter&3)<<1) | (isCompassOn&1); // bit[2-1]: BMP280的滤波等级[取值0-3]   bit[0]: 1=已开启磁场 0=已关闭磁场
     buf[5] = reportHz;
     buf[6] = gyroFilter;
     buf[7] = accFilter;
@@ -265,35 +265,35 @@ void Cmd_12(U8 accStill, U8 stillToZero, U8 moveToZero,  U8 isCompassOn, U8 baro
     //Dbp("\r\nset parameters--\r\n");
     Cmd_PackAndTx(buf, 11);
 }
-// �ߵ���ά�ռ�λ������
+// 惯导三维空间位置清零
 void Cmd_13(void)
 {
     U8 buf[1] = {0x13};
     //Dbp("\r\nclear INS position--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// �Ʋ�������
+// 计步数清零
 void Cmd_16(void)
 {
     U8 buf[1] = {0x16};
     //Dbp("\r\nclear steps--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// �ָ�����У׼����
+// 恢复出厂校准参数
 void Cmd_14(void)
 {
     U8 buf[1] = {0x14};
     //Dbp("\r\nRestore calibration parameters from factory mode--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// ���浱ǰУ׼����Ϊ����У׼����
+// 保存当前校准参数为出厂校准参数
 void Cmd_15(void)
 {
     U8 buf[3] = {0x15, 0x88, 0x99};
     //Dbp("\r\nSave calibration parameters to factory mode--\r\n");
     Cmd_PackAndTx(buf, 3);
 }
-// ���ټƼ���У׼ ģ�龲ֹ��ˮƽ��ʱ�����͸�ָ��յ��ظ���ȴ�9�뼴��
+// 加速计简易校准 模块静止在水平面时，发送该指令并收到回复后等待9秒即可
 void Cmd_07(void)
 {
     U8 buf[1] = {0x07};
@@ -301,28 +301,28 @@ void Cmd_07(void)
     Cmd_PackAndTx(buf, 1);
 }
 /**
- * ���ټƸ߾���У׼
- * @param flag ��ģ��δ����У׼״̬ʱ��
- *                 ֵ0 ��ʾ����ʼһ��У׼���ɼ�1������
- *                 ֵ255 ��ʾѯ���豸�Ƿ�����У׼
- *             ��ģ������У׼��:
- *                 ֵ1 ��ʾҪ�ɼ���1������
- *                 ֵ255 ��ʾҪ�ɼ����1�����ݲ�����
+ * 加速计高精度校准
+ * @param flag 若模块未处于校准状态时：
+ *                 值0 表示请求开始一次校准并采集1个数据
+ *                 值255 表示询问设备是否正在校准
+ *             若模块正在校准中:
+ *                 值1 表示要采集下1个数据
+ *                 值255 表示要采集最后1个数据并结束
  */
 void Cmd_17(U8 flag)
 {
     U8 buf[2] = {0x17};
     buf[1] = flag;
     if (flag == 0)
-    {// ����ʼ1��У׼
+    {// 请求开始1次校准
         //Dbp("\r\ncalibration request start--\r\n");
     }
     else if (flag == 1)
-    {// ����ɼ��¸�����
+    {// 请求采集下个数据
         //Dbp("calibration request next point--\r\n");
     }
     else if (flag == 255)
-    {// ����ɼ����һ�����ݲ�������ǰ�����е�У׼
+    {// 请求采集最后一个数据并结束当前进行中的校准
         //Dbp("calibration request stop--\r\n");
     }
     else
@@ -331,35 +331,35 @@ void Cmd_17(U8 flag)
     }
     Cmd_PackAndTx(buf, 2);
 }
-// ��ʼ������У׼
+// 开始磁力计校准
 void Cmd_32(void)
 {
     U8 buf[1] = {0x32};
     //Dbp("\r\ncompass calibrate begin--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// ����������У׼
+// 结束磁力计校准
 void Cmd_04(void)
 {
     U8 buf[1] = {0x04};
     //Dbp("\r\ncompass calibrate end--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// z��ǹ���
+// z轴角归零
 void Cmd_05(void)
 {
     U8 buf[1] = {0x05};
     //Dbp("\r\nz-axes to zero--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// xyz��������ϵ����
+// xyz世界坐标系清零
 void Cmd_06(void)
 {
     U8 buf[1] = {0x06};
     //Dbp("\r\nWorldXYZ-axes to zero--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// �ָ�Ĭ�ϵ���������ϵZ��ָ�򼰻ָ�Ĭ�ϵ���������ϵ
+// 恢复默认的自身坐标系Z轴指向及恢复默认的世界坐标系
 void Cmd_08(void)
 {
     U8 buf[1] = {0x08};
@@ -367,9 +367,9 @@ void Cmd_08(void)
     Cmd_PackAndTx(buf, 1);
 }
 /**
- * ����PCB��װ�������
- * @param accMatrix ���ټƷ������
- * @param comMatrix �����Ʒ������
+ * 设置PCB安装方向矩阵
+ * @param accMatrix 加速计方向矩阵
+ * @param comMatrix 磁力计方向矩阵
  */
 void Cmd_20(S8 *accMatrix, S8 *comMatrix)
 {
@@ -379,7 +379,7 @@ void Cmd_20(S8 *accMatrix, S8 *comMatrix)
     //Dbp("\r\nz-axes to zero--\r\n");
     Cmd_PackAndTx(buf, 19);
 }
-// ��ȡPCB��װ�������
+// 读取PCB安装方向矩阵
 void Cmd_21(void)
 {
     U8 buf[1] = {0x21};
@@ -387,8 +387,8 @@ void Cmd_21(void)
     Cmd_PackAndTx(buf, 1);
 }
 /**
- * ���������㲥����
- * @param bleName ��������(���֧��15���ַ�����,��֧������)
+ * 设置蓝牙广播名称
+ * @param bleName 蓝牙名称(最多支持15个字符长度,不支持中文)
  */
 void Cmd_22(U8 *bleName)
 {
@@ -397,7 +397,7 @@ void Cmd_22(U8 *bleName)
     //Dbp("\r\nset BLE name--\r\n");
     Cmd_PackAndTx(buf, 17);
 }
-// ��ȡ�����㲥����
+// 读取蓝牙广播名称
 void Cmd_23(void)
 {
     U8 buf[1] = {0x23};
@@ -405,11 +405,11 @@ void Cmd_23(void)
     Cmd_PackAndTx(buf, 1);
 }
 /**
- * ���ùػ���ѹ�ͳ�����
- * @param PowerDownVoltageFlag �ػ���ѹѡ�� 0=3.4V(﮵����) 1=2.7V(�����ɵ����)
- * @param charge_full_mV  ����ֹ��ѹ 0:3962mv 1:4002mv 2:4044mv 3:4086mv 4:4130mv 5:4175mv 6:4222mv 7:4270mv 8:4308mv 9:4349mv 10:4391mv
- * @param charge_full_mA ����ֹ���� 0:2ma 1:5ma 2:7ma 3:10ma 4:15ma 5:20ma 6:25ma 7:30ma
- * @param charge_mA      ������ 0:20ma 1:30ma 2:40ma 3:50ma 4:60ma 5:70ma 6:80ma 7:90ma 8:100ma 9:110ma 10:120ma 11:140ma 12:160ma 13:180ma 14:200ma 15:220ma
+ * 设置关机电压和充电参数
+ * @param PowerDownVoltageFlag 关机电压选择 0=3.4V(锂电池用) 1=2.7V(其它干电池用)
+ * @param charge_full_mV  充电截止电压 0:3962mv 1:4002mv 2:4044mv 3:4086mv 4:4130mv 5:4175mv 6:4222mv 7:4270mv 8:4308mv 9:4349mv 10:4391mv
+ * @param charge_full_mA 充电截止电流 0:2ma 1:5ma 2:7ma 3:10ma 4:15ma 5:20ma 6:25ma 7:30ma
+ * @param charge_mA      充电电流 0:20ma 1:30ma 2:40ma 3:50ma 4:60ma 5:70ma 6:80ma 7:90ma 8:100ma 9:110ma 10:120ma 11:140ma 12:160ma 13:180ma 14:200ma 15:220ma
  */
 void Cmd_24(U8 PowerDownVoltageFlag, U8 charge_full_mV, U8 charge_full_mA, U8 charge_mA)
 {
@@ -421,14 +421,14 @@ void Cmd_24(U8 PowerDownVoltageFlag, U8 charge_full_mV, U8 charge_full_mA, U8 ch
     //Dbp("\r\nset PowerDownVoltage and charge parameters--\r\n");
     Cmd_PackAndTx(buf, 5);
 }
-// ��ȡ �ػ���ѹ�ͳ�����
+// 读取 关机电压和充电参数
 void Cmd_25(void)
 {
     U8 buf[1] = {0x25};
     //Dbp("\r\nget PowerDownVoltage and charge parameters--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// �Ͽ��������� ��ָ����лظ�
+// 断开蓝牙连接 该指令不会有回复
 void Cmd_26(void)
 {
     U8 buf[1] = {0x26};
@@ -436,9 +436,9 @@ void Cmd_26(void)
     Cmd_PackAndTx(buf, 1);
 }
 /**
- * �����û���GPIO����
+ * 设置用户的GPIO引脚
  *
- * @param M 0=��������, 1=��������, 2=��������, 3=���0, 4=���1
+ * @param M 0=浮空输入, 1=上拉输入, 2=下拉输入, 3=输出0, 4=输出1
  */
 void Cmd_27(U8 M)
 {
@@ -448,14 +448,14 @@ void Cmd_27(U8 M)
     Cmd_PackAndTx(buf, 2);
 }
 
-// �豸����
+// 设备重启
 void Cmd_2A(void)
 {
     U8 buf[1] = {0x2A};
     //Dbp("\r\nreset--\r\n");
     Cmd_PackAndTx(buf, 1);
 }
-// �豸�ػ�
+// 设备关机
 void Cmd_2B(void)
 {
     U8 buf[1] = {0x2B};
@@ -464,9 +464,9 @@ void Cmd_2B(void)
 }
 
 /**
- * ���� ���йػ�ʱ��
+ * 设置 空闲关机时长
  *
- * @param idleToPowerOffTime ������û��ͨ���������ڹ㲥�У�������ʱ�ﵽ��ô���10������ػ�  0=���ػ�
+ * @param idleToPowerOffTime 当串口没有通信且蓝牙在广播中，连续计时达到这么多个10分钟则关机  0=不关机
  */
 void Cmd_2C(U8 idleToPowerOffTime)
 {
@@ -475,7 +475,7 @@ void Cmd_2C(U8 idleToPowerOffTime)
     //Dbp("\r\nset idleToPowerOffTime--\r\n");
     Cmd_PackAndTx(buf, 2);
 }
-// ��ȡ ���йػ�ʱ��
+// 读取 空闲关机时长
 void Cmd_2D(void)
 {
     U8 buf[1] = {0x2D};
@@ -484,9 +484,9 @@ void Cmd_2D(void)
 }
 
 /**
- * ���� ��ֹ������ʽ�������ƺͳ����� ��ʶ
+ * 设置 禁止蓝牙方式更改名称和充电参数 标识
  *
- * @param DisableBleSetNameAndCahrge 1=��ֹͨ�������������Ƽ������� 0=����(Ĭ��) ���ܿͻ��Ĳ�Ʒ�����ñ������������ģ���Ϊ1����
+ * @param DisableBleSetNameAndCahrge 1=禁止通过蓝牙更改名称及充电参数 0=允许(默认) 可能客户的产品不想让别人用蓝牙随便改，设为1即可
  */
 void Cmd_2E(U8 DisableBleSetNameAndCahrge)
 {
@@ -495,7 +495,7 @@ void Cmd_2E(U8 DisableBleSetNameAndCahrge)
     Dbp("\r\nset FlagForDisableBleSetNameAndCahrge--\r\n");
     Cmd_PackAndTx(buf, 2);
 }
-// ��ȡ ��ֹ������ʽ�������ƺͳ����� ��ʶ
+// 读取 禁止蓝牙方式更改名称和充电参数 标识
 void Cmd_2F(void)
 {
     U8 buf[1] = {0x2F};
@@ -504,9 +504,9 @@ void Cmd_2F(void)
 }
 
 /**
- * ���� ����ͨ�ŵ�ַ
+ * 设置 串口通信地址
  *
- * @param address �豸��ַֻ������Ϊ0-254
+ * @param address 设备地址只能设置为0-254
  */
 void Cmd_30(U8 address)
 {
@@ -515,7 +515,7 @@ void Cmd_30(U8 address)
     Dbp("\r\nset address--\r\n");
     Cmd_PackAndTx(buf, 2);
 }
-// ��ȡ ����ͨ�ŵ�ַ
+// 读取 串口通信地址
 void Cmd_31(void)
 {
     U8 buf[1] = {0x31};
@@ -524,10 +524,10 @@ void Cmd_31(void)
 }
 
 /**
- * ���� ���ټƺ�����������
+ * 设置 加速计和陀螺仪量程
  *
- * @param AccRange  Ŀ����ٶ����� 0=2g 1=4g 2=8g 3=16g
- * @param GyroRange Ŀ������������ 0=256 1=512 2=1024 3=2048
+ * @param AccRange  目标加速度量程 0=2g 1=4g 2=8g 3=16g
+ * @param GyroRange 目标陀螺仪量程 0=256 1=512 2=1024 3=2048
  */
 void Cmd_33(U8 AccRange, U8 GyroRange)
 {
@@ -537,7 +537,7 @@ void Cmd_33(U8 AccRange, U8 GyroRange)
     Dbp("\r\nset accelRange and gyroRange--\r\n");
     Cmd_PackAndTx(buf, 3);
 }
-// ��ȡ ���ټƺ�����������
+// 读取 加速计和陀螺仪量程
 void Cmd_34(void)
 {
     U8 buf[1] = {0x34};
@@ -546,9 +546,9 @@ void Cmd_34(void)
 }
 
 /**
- * ���� �������Զ�У����ʶ
+ * 设置 陀螺仪自动校正标识
  *
- * @param GyroAutoFlag  1=�������Զ�У�������ȿ�  0=��
+ * @param GyroAutoFlag  1=陀螺仪自动校正灵敏度开  0=关
  */
 void Cmd_35(U8 GyroAutoFlag)
 {
@@ -557,7 +557,7 @@ void Cmd_35(U8 GyroAutoFlag)
     Dbp("\r\nset GyroAutoFlag--\r\n");
     Cmd_PackAndTx(buf, 2);
 }
-// ��ȡ ���ټƺ�����������
+// 读取 加速计和陀螺仪量程
 void Cmd_36(void)
 {
     U8 buf[1] = {0x36};
@@ -566,9 +566,9 @@ void Cmd_36(void)
 }
 
 /**
- * ���� ��ֹ����ģʽ�Ĵ���ʱ��
+ * 设置 静止节能模式的触发时长
  *
- * @param EcoTime_10s ��ֵ����0�������Զ�����ģʽ(��������˯�ߺ������ϱ�����ֹEcoTime_10s��10���Զ������˶����ģʽ����ͣ�����ϱ�)  0=�������Զ�����
+ * @param EcoTime_10s 该值大于0，则开启自动节能模式(即传感器睡眠后不主动上报，或静止EcoTime_10s个10秒自动进入运动监测模式且暂停主动上报)  0=不启用自动节能
  */
 void Cmd_37(U8 EcoTime_10s)
 {
@@ -577,7 +577,7 @@ void Cmd_37(U8 EcoTime_10s)
     Dbp("\r\nset EcoTime_10s--\r\n");
     Cmd_PackAndTx(buf, 2);
 }
-// ��ȡ ���ټƺ�����������
+// 读取 加速计和陀螺仪量程
 void Cmd_38(void)
 {
     U8 buf[1] = {0x38};
@@ -587,9 +587,9 @@ void Cmd_38(void)
 
 float __tmpZ;
 /**
- * �������յ����ĵ������岢�������û�������Ŀ���󣬹�ע�����Ӧ�����ݼ���--------------------
- * @param pDat Ҫ������������
- * @param DLen ������ĳ���
+ * 解析接收到报文的数据体并处理，用户根据项目需求，关注里面对应的内容即可--------------------
+ * @param pDat 要解析的数据体
+ * @param DLen 数据体的长度
  */
 static void Cmd_RxUnpack(U8 *buf, U8 DLen)
 {
@@ -602,263 +602,263 @@ static void Cmd_RxUnpack(U8 *buf, U8 DLen)
 
     switch (buf[0])
     {
-    case 0x02: // ������ ��˯�� �ظ�
+    case 0x02: // 传感器 已睡眠 回复
         Dbp("\t sensor off success\r\n");
         break;
-    case 0x03: // ������ �ѻ��� �ظ�
+    case 0x03: // 传感器 已唤醒 回复
         Dbp("\t sensor on success\r\n");
         break;
-    case 0x32: // ������ ��ʼУ׼ �ظ�
+    case 0x32: // 磁力计 开始校准 回复
         Dbp("\t compass calibrate begin\r\n");
         break;
-    case 0x04: // ������ ����У׼ �ظ�
+    case 0x04: // 磁力计 结束校准 回复
         Dbp("\t compass calibrate end\r\n");
         break;
-    case 0x05: // z��� �ѹ��� �ظ�
+    case 0x05: // z轴角 已归零 回复
         Dbp("\t z-axes to zero success\r\n");
         break;
-    case 0x06: // ���� xyz��������ϵ���� �ظ�
+    case 0x06: // 请求 xyz世界坐标系清零 回复
         Dbp("\t WorldXYZ-axes to zero success\r\n");
         break;
-    case 0x07: // ���ټƼ�У׼���ڽ��У�����9������  �ظ�
+    case 0x07: // 加速计简单校准正在进行，将在9秒后完成  回复
         Dbp("\t acceleration calibration, Hold still for 9 seconds\r\n");
         break;
-    case 0x08: // �ָ�Ĭ�ϵ���������ϵZ��ָ�򼰻ָ�Ĭ�ϵ���������ϵ  �ظ�
+    case 0x08: // 恢复默认的自身坐标系Z轴指向及恢复默认的世界坐标系  回复
         Dbp("\t axesZ WorldXYZ-axes to zero success\r\n");
         break;
-    case 0x10: // ģ�鵱ǰ�����Ժ�״̬ �ظ�
-        Dbp("\t still limit: %u\r\n", buf[1]);   // �ֽ�1 �ߵ�-��ֹ״̬���ٶȷ�ֵ ��λdm/s?
-        Dbp("\t still to zero: %u\r\n", buf[2]); // �ֽ�2 �ߵ�-��ֹ�����ٶ�(��λmm/s) 0:������ 255:��������
-        Dbp("\t move to zero: %u\r\n", buf[3]);  // �ֽ�3 �ߵ�-��̬�����ٶ�(��λmm/s) 0:������
-        Dbp("\t compass: %s\r\n", ((buf[4]>>0) & 0x01)? "on":"off" );     // �ֽ�4 bit[0]: 1=�ѿ����ų� 0=�ѹرմų�
-        Dbp("\t barometer filter: %u\r\n", (buf[4]>>1) & 0x03);           // �ֽ�4 bit[1-2]: ��ѹ�Ƶ��˲��ȼ�[ȡֵ0-3],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-        Dbp("\t IMU: %s\r\n", ((buf[4]>>3) & 0x01)? "on":"off" );         // �ֽ�4 bit[3]: 1=�������ѿ���  0=��������˯��
-        Dbp("\t auto report: %s\r\n", ((buf[4]>>4) & 0x01)? "on":"off" ); // �ֽ�4 bit[4]: 1=�ѿ������������������ϱ� 0=�ѹرմ��������������ϱ�
-        Dbp("\t FPS: %u\r\n", buf[5]); // �ֽ�5 ���������ϱ��Ĵ���֡��[ȡֵ0-250HZ], 0��ʾ0.5HZ
-        Dbp("\t gyro filter: %u\r\n", buf[6]);    // �ֽ�6 �������˲�ϵ��[ȡֵ0-2],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-        Dbp("\t acc filter: %u\r\n", buf[7]);     // �ֽ�7 ���ټ��˲�ϵ��[ȡֵ0-4],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-        Dbp("\t compass filter: %u\r\n", buf[8]); // �ֽ�8 �������˲�ϵ��[ȡֵ0-9],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-        Dbp("\t subscribe tag: 0x%04X\r\n", (U16)(((U16)buf[10]<<8) | buf[9])); // �ֽ�[10-9] ���ܶ��ı�ʶ
-        Dbp("\t charged state: %u\r\n", buf[11]); // �ֽ�11 ���״ָ̬ʾ 0=δ�ӵ�Դ 1=����� 2=�ѳ���
-        Dbp("\t battery level: %u%%\r\n", buf[12]); // �ֽ�12 ��ǰʣ�����[0-100%]
-        Dbp("\t battery voltage: %u mv\r\n", (U16)(((U16)buf[14]<<8) | buf[13])); // �ֽ�[14-13] ��صĵ�ǰ��ѹmv
-        Dbp("\t Mac: %02X:%02X:%02X:%02X:%02X:%02X\r\n", buf[15],buf[16],buf[17],buf[18],buf[19],buf[20]); // �ֽ�[15-20] MAC��ַ
-        Dbp("\t version: %s\r\n", &buf[21]); // �ֽ�[21-26] �̼��汾 �ַ���
-        Dbp("\t product model: %s\r\n", &buf[27]); // �ֽ�[26-32] ��Ʒ�ͺ� �ַ���
+    case 0x10: // 模块当前的属性和状态 回复
+        Dbp("\t still limit: %u\r\n", buf[1]);   // 字节1 惯导-静止状态加速度阀值 单位dm/s?
+        Dbp("\t still to zero: %u\r\n", buf[2]); // 字节2 惯导-静止归零速度(单位mm/s) 0:不归零 255:立即归零
+        Dbp("\t move to zero: %u\r\n", buf[3]);  // 字节3 惯导-动态归零速度(单位mm/s) 0:不归零
+        Dbp("\t compass: %s\r\n", ((buf[4]>>0) & 0x01)? "on":"off" );     // 字节4 bit[0]: 1=已开启磁场 0=已关闭磁场
+        Dbp("\t barometer filter: %u\r\n", (buf[4]>>1) & 0x03);           // 字节4 bit[1-2]: 气压计的滤波等级[取值0-3],数值越大越平稳但实时性越差
+        Dbp("\t IMU: %s\r\n", ((buf[4]>>3) & 0x01)? "on":"off" );         // 字节4 bit[3]: 1=传感器已开启  0=传感器已睡眠
+        Dbp("\t auto report: %s\r\n", ((buf[4]>>4) & 0x01)? "on":"off" ); // 字节4 bit[4]: 1=已开启传感器数据主动上报 0=已关闭传感器数据主动上报
+        Dbp("\t FPS: %u\r\n", buf[5]); // 字节5 数据主动上报的传输帧率[取值0-250HZ], 0表示0.5HZ
+        Dbp("\t gyro filter: %u\r\n", buf[6]);    // 字节6 陀螺仪滤波系数[取值0-2],数值越大越平稳但实时性越差
+        Dbp("\t acc filter: %u\r\n", buf[7]);     // 字节7 加速计滤波系数[取值0-4],数值越大越平稳但实时性越差
+        Dbp("\t compass filter: %u\r\n", buf[8]); // 字节8 磁力计滤波系数[取值0-9],数值越大越平稳但实时性越差
+        Dbp("\t subscribe tag: 0x%04X\r\n", (U16)(((U16)buf[10]<<8) | buf[9])); // 字节[10-9] 功能订阅标识
+        Dbp("\t charged state: %u\r\n", buf[11]); // 字节11 充电状态指示 0=未接电源 1=充电中 2=已充满
+        Dbp("\t battery level: %u%%\r\n", buf[12]); // 字节12 当前剩余电量[0-100%]
+        Dbp("\t battery voltage: %u mv\r\n", (U16)(((U16)buf[14]<<8) | buf[13])); // 字节[14-13] 电池的当前电压mv
+        Dbp("\t Mac: %02X:%02X:%02X:%02X:%02X:%02X\r\n", buf[15],buf[16],buf[17],buf[18],buf[19],buf[20]); // 字节[15-20] MAC地址
+        Dbp("\t version: %s\r\n", &buf[21]); // 字节[21-26] 固件版本 字符串
+        Dbp("\t product model: %s\r\n", &buf[27]); // 字节[26-32] 产品型号 字符串
         break;
-    case 0x11: // ��ȡ���ĵĹ������� �ظ��������ϱ�
-        ctl = ((U16)buf[2] << 8) | buf[1];// �ֽ�[2-1] Ϊ���ܶ��ı�ʶ��ָʾ��ǰ��������Щ����
+    case 0x11: // 获取订阅的功能数据 回复或主动上报
+        ctl = ((U16)buf[2] << 8) | buf[1];// 字节[2-1] 为功能订阅标识，指示当前订阅了哪些功能
         Dbp("\t subscribe tag: 0x%04X\r\n", ctl);
-        Dbp("\t ms: %u\r\n", (U32)(((U32)buf[6]<<24) | ((U32)buf[5]<<16) | ((U32)buf[4]<<8) | ((U32)buf[3]<<0))); // �ֽ�[6-3] Ϊģ�鿪�����ʱ���(��λms)
+        Dbp("\t ms: %u\r\n", (U32)(((U32)buf[6]<<24) | ((U32)buf[5]<<16) | ((U32)buf[4]<<8) | ((U32)buf[3]<<0))); // 字节[6-3] 为模块开机后的时间戳(单位ms)
 
-        L =7; // �ӵ�7�ֽڿ�ʼ���� ���ı�ʶtag������ʣ�µ�����
+        L =7; // 从第7字节开始根据 订阅标识tag来解析剩下的数据
         if ((ctl & 0x0001) != 0)
-        {// ���ٶ�xyz ȥ�������� ʹ��ʱ��*scaleAccel m/s
-            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\taX: %.3f\r\n", tmpX); // x���ٶ�aX
-            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\taY: %.3f\r\n", tmpY); // y���ٶ�aY
-            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\taZ: %.3f\r\n", tmpZ); // z���ٶ�aZ
-            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\ta_abs: %.3f\r\n", tmpAbs); // 3��ϳɵľ���ֵ
+        {// 加速度xyz 去掉了重力 使用时需*scaleAccel m/s
+            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\taX: %.3f\r\n", tmpX); // x加速度aX
+            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\taY: %.3f\r\n", tmpY); // y加速度aY
+            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\taZ: %.3f\r\n", tmpZ); // z加速度aZ
+            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\ta_abs: %.3f\r\n", tmpAbs); // 3轴合成的绝对值
         }
         if ((ctl & 0x0002) != 0)
-        {// ���ٶ�xyz ���������� ʹ��ʱ��*scaleAccel m/s
-            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tAX: %.3f\r\n", tmpX); // x���ٶ�AX
-            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tAY: %.3f\r\n", tmpY); // y���ٶ�AY
-            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tAZ: %.3f\r\n", tmpZ); // z���ٶ�AZ
-            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tA_abs: %.3f\r\n", tmpAbs); // 3��ϳɵľ���ֵ
+        {// 加速度xyz 包含了重力 使用时需*scaleAccel m/s
+            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tAX: %.3f\r\n", tmpX); // x加速度AX
+            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tAY: %.3f\r\n", tmpY); // y加速度AY
+            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tAZ: %.3f\r\n", tmpZ); // z加速度AZ
+            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tA_abs: %.3f\r\n", tmpAbs); // 3轴合成的绝对值
         }
         if ((ctl & 0x0004) != 0)
-        {// ���ٶ�xyz ʹ��ʱ��*scaleAngleSpeed ��/s
-            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngleSpeed; L += 2; Dbp("\tGX: %.3f\r\n", tmpX); // x���ٶ�GX
-            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngleSpeed; L += 2; Dbp("\tGY: %.3f\r\n", tmpY); // y���ٶ�GY
-            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngleSpeed; L += 2; Dbp("\tGZ: %.3f\r\n", tmpZ); // z���ٶ�GZ
-            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tG_abs: %.3f\r\n", tmpAbs); // 3��ϳɵľ���ֵ
+        {// 角速度xyz 使用时需*scaleAngleSpeed °/s
+            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngleSpeed; L += 2; Dbp("\tGX: %.3f\r\n", tmpX); // x角速度GX
+            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngleSpeed; L += 2; Dbp("\tGY: %.3f\r\n", tmpY); // y角速度GY
+            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngleSpeed; L += 2; Dbp("\tGZ: %.3f\r\n", tmpZ); // z角速度GZ
+            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tG_abs: %.3f\r\n", tmpAbs); // 3轴合成的绝对值
         }
         if ((ctl & 0x0008) != 0)
-        {// �ų�xyz ʹ��ʱ��*scaleMag uT
-            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleMag; L += 2; Dbp("\tCX: %.3f\r\n", tmpX); // x�ų�CX
-            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleMag; L += 2; Dbp("\tCY: %.3f\r\n", tmpY); // y�ų�CY
-            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleMag; L += 2; Dbp("\tCZ: %.3f\r\n", tmpZ); // z�ų�CZ
-            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tC_abs: %.3f\r\n", tmpAbs); // 3��ϳɵľ���ֵ
+        {// 磁场xyz 使用时需*scaleMag uT
+            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleMag; L += 2; Dbp("\tCX: %.3f\r\n", tmpX); // x磁场CX
+            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleMag; L += 2; Dbp("\tCY: %.3f\r\n", tmpY); // y磁场CY
+            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleMag; L += 2; Dbp("\tCZ: %.3f\r\n", tmpZ); // z磁场CZ
+            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tC_abs: %.3f\r\n", tmpAbs); // 3轴合成的绝对值
         }
         if ((ctl & 0x0010) != 0)
-        {// �¶� ��ѹ �߶�
-            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleTemperature; L += 2; Dbp("\ttemperature: %.2f\r\n", tmpX); // �¶�
+        {// 温度 气压 高度
+            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleTemperature; L += 2; Dbp("\ttemperature: %.2f\r\n", tmpX); // 温度
 
             tmpU32 = (U32)(((U32)buf[L+2] << 16) | ((U32)buf[L+1] << 8) | (U32)buf[L]);
-            tmpU32 = ((tmpU32 & 0x800000) == 0x800000)? (tmpU32 | 0xff000000) : tmpU32;// ��24λ�������λΪ1�����ֵΪ��������תΪ32λ������ֱ�Ӳ���ff����
-            tmpY = (S32)tmpU32 * scaleAirPressure; L += 3; Dbp("\tairPressure: %.3f\r\n", tmpY); // ��ѹ
+            tmpU32 = ((tmpU32 & 0x800000) == 0x800000)? (tmpU32 | 0xff000000) : tmpU32;// 若24位数的最高位为1则该数值为负数，需转为32位负数，直接补上ff即可
+            tmpY = (S32)tmpU32 * scaleAirPressure; L += 3; Dbp("\tairPressure: %.3f\r\n", tmpY); // 气压
 
             tmpU32 = (U32)(((U32)buf[L+2] << 16) | ((U32)buf[L+1] << 8) | (U32)buf[L]);
-            tmpU32 = ((tmpU32 & 0x800000) == 0x800000)? (tmpU32 | 0xff000000) : tmpU32;// ��24λ�������λΪ1�����ֵΪ��������תΪ32λ������ֱ�Ӳ���ff����
-            tmpZ = (S32)tmpU32 * scaleHeight; L += 3; Dbp("\theight: %.3f\r\n", tmpZ); // �߶�
+            tmpU32 = ((tmpU32 & 0x800000) == 0x800000)? (tmpU32 | 0xff000000) : tmpU32;// 若24位数的最高位为1则该数值为负数，需转为32位负数，直接补上ff即可
+            tmpZ = (S32)tmpU32 * scaleHeight; L += 3; Dbp("\theight: %.3f\r\n", tmpZ); // 高度
         }
         if ((ctl & 0x0020) != 0)
-        {// ��Ԫ�� wxyz ʹ��ʱ��*scaleQuat
+        {// 四元素 wxyz 使用时需*scaleQuat
             tmpAbs = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleQuat; L += 2; Dbp("\tw: %.3f\r\n", tmpAbs); // w
             tmpX =   (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleQuat; L += 2; Dbp("\tx: %.3f\r\n", tmpX); // x
             tmpY =   (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleQuat; L += 2; Dbp("\ty: %.3f\r\n", tmpY); // y
             tmpZ =   (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleQuat; L += 2; Dbp("\tz: %.3f\r\n", tmpZ); // z
         }
         if ((ctl & 0x0040) != 0)
-        {// ŷ����xyz ʹ��ʱ��*scaleAngle
-            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngle; L += 2; Dbp("\tangleX: %.3f\r\n", tmpX); // x�Ƕ�
-            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngle; L += 2; Dbp("\tangleY: %.3f\r\n", tmpY); // y�Ƕ�
-						Yaw_Angle = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngle; L += 2; //Dbp("\tangleZ: %.3f\r\n", tmpZ); // z�Ƕ�
+        {// 欧拉角xyz 使用时需*scaleAngle
+            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngle; L += 2; Dbp("\tangleX: %.3f\r\n", tmpX); // x角度
+            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngle; L += 2; Dbp("\tangleY: %.3f\r\n", tmpY); // y角度
+						Yaw_Angle = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAngle; L += 2; //Dbp("\tangleZ: %.3f\r\n", tmpZ); // z角度
         }
         if ((ctl & 0x0080) != 0)
-        {// xyz �ռ�λ�� ��λmm תΪ m
-						//tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetX: %.3f\r\n", tmpX); // x����
-						Move_X = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetX: %.3f\r\n", tmpX); // x����
+        {// xyz 空间位移 单位mm 转为 m
+						//tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetX: %.3f\r\n", tmpX); // x坐标
+						Move_X = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetX: %.3f\r\n", tmpX); // x坐标
 						//tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetY: %.3f\r\n", tmpY)
 						Move_Y = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetY: %.3f\r\n", tmpY);
-            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetZ: %.3f\r\n", tmpZ); // z����
+            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) / 1000.0f; L += 2; Dbp("\toffsetZ: %.3f\r\n", tmpZ); // z坐标
         }
         if ((ctl & 0x0100) != 0)
-        {// ��������
-            tmpU32 = (U32)(((U32)buf[L+3]<<24) | ((U32)buf[L+2]<<16) | ((U32)buf[L+1]<<8) | ((U32)buf[L]<<0)); L += 4; Dbp("\tsteps: %u\r\n", tmpU32); // �Ʋ���
+        {// 活动检测数据
+            tmpU32 = (U32)(((U32)buf[L+3]<<24) | ((U32)buf[L+2]<<16) | ((U32)buf[L+1]<<8) | ((U32)buf[L]<<0)); L += 4; Dbp("\tsteps: %u\r\n", tmpU32); // 计步数
             tmpU8 = buf[L]; L += 1;
-            Dbp("\t walking: %s\r\n", (tmpU8 & 0x01)?  "yes" : "no"); // �Ƿ�����·
-            Dbp("\t running: %s\r\n", (tmpU8 & 0x02)?  "yes" : "no"); // �Ƿ����ܲ�
-            Dbp("\t biking: %s\r\n",  (tmpU8 & 0x04)?  "yes" : "no"); // �Ƿ����ﳵ
-            Dbp("\t driving: %s\r\n", (tmpU8 & 0x08)?  "yes" : "no"); // �Ƿ��ڿ���
+            Dbp("\t walking: %s\r\n", (tmpU8 & 0x01)?  "yes" : "no"); // 是否在走路
+            Dbp("\t running: %s\r\n", (tmpU8 & 0x02)?  "yes" : "no"); // 是否在跑步
+            Dbp("\t biking: %s\r\n",  (tmpU8 & 0x04)?  "yes" : "no"); // 是否在骑车
+            Dbp("\t driving: %s\r\n", (tmpU8 & 0x08)?  "yes" : "no"); // 是否在开车
         }
         if ((ctl & 0x0200) != 0)
-        {// ���ٶ�xyz ȥ�������� ʹ��ʱ��*scaleAccel m/s
-            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tasX: %.3f\r\n", tmpX); // x���ٶ�asX
-            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tasY: %.3f\r\n", tmpY); // y���ٶ�asY
-            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tasZ: %.3f\r\n", tmpZ); // z���ٶ�asZ
-            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tas_abs: %.3f\r\n", tmpAbs); // 3��ϳɵľ���ֵ
+        {// 加速度xyz 去掉了重力 使用时需*scaleAccel m/s
+            tmpX = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tasX: %.3f\r\n", tmpX); // x加速度asX
+            tmpY = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tasY: %.3f\r\n", tmpY); // y加速度asY
+            tmpZ = (S16)(((S16)buf[L+1]<<8) | buf[L]) * scaleAccel; L += 2; Dbp("\tasZ: %.3f\r\n", tmpZ); // z加速度asZ
+            tmpAbs = sqrt(pow2(tmpX) + pow2(tmpY) + pow2(tmpZ)); Dbp("\tas_abs: %.3f\r\n", tmpAbs); // 3轴合成的绝对值
         }
         if ((ctl & 0x0400) != 0)
-        {// ADC��ֵ
-            tmpU16 = (U16)(((U16)buf[L+1]<<8) | ((U16)buf[L]<<0)); L += 2; Dbp("\tadc: %u\r\n", tmpU16); // ��λmv
+        {// ADC的值
+            tmpU16 = (U16)(((U16)buf[L+1]<<8) | ((U16)buf[L]<<0)); L += 2; Dbp("\tadc: %u\r\n", tmpU16); // 单位mv
         }
         if ((ctl & 0x0800) != 0)
-        {// GPIO1��ֵ
+        {// GPIO1的值
             tmpU8 = buf[L]; L += 1;
             Dbp("\t GPIO1  M:%X, N:%X\r\n", (tmpU8>>4)&0x0f, (tmpU8)&0x0f);
         }
         break;
-    case 0x12: // ���ò��� �ظ�
+    case 0x12: // 设置参数 回复
         Dbp("\t set parameters success\r\n");
         break;
-    case 0x13: // �ߵ���ά�ռ�λ������ �ظ�
+    case 0x13: // 惯导三维空间位置清零 回复
         Dbp("\t clear INS position success\r\n");
         break;
-    case 0x14: // �ָ�����У׼���� �ظ�
+    case 0x14: // 恢复出厂校准参数 回复
         Dbp("\t Restore calibration parameters from factory mode success\r\n");
         break;
-    case 0x15: // ���浱ǰУ׼����Ϊ����У׼���� �ظ�
+    case 0x15: // 保存当前校准参数为出厂校准参数 回复
         Dbp("\t Save calibration parameters to factory mode success\r\n");
         break;
-    case 0x16: // �Ʋ������� �ظ�
+    case 0x16: // 计步数清零 回复
         Dbp("\t clear steps success\r\n");
         break;
-    case 0x17: // ���ټƸ߾���У׼ �ظ�
+    case 0x17: // 加速计高精度校准 回复
         if (buf[1] == 255)
-        {// �ֽ�1 ֵ255 ��ʾ�ɼ���ɣ����ڽ���У׼(�豸��������־�ֹ�ȴ�10����)
+        {// 字节1 值255 表示采集完成，正在结束校准(设备需继续保持静止等待10秒钟)
             Dbp("\t calibration success, please wait 10 seconds\r\n");
         }
         else if (buf[1] == 254)
-        {// �ֽ�1 ֵ254 ��ʾ�������Լ�ʧ��
+        {// 字节1 值254 表示陀螺仪自检失败
             Dbp("\t calibration fail, gyro error\r\n");
         }
         else if (buf[1] == 253)
-        {// �ֽ�1 ֵ253 ��ʾ���ټ��Լ�ʧ��
+        {// 字节1 值253 表示加速计自检失败
             Dbp("\t calibration fail, accelerometer error\r\n");
         }
         else if (buf[1] == 252)
-        {// �ֽ�1 ֵ252 ��ʾ�������Լ�ʧ��
+        {// 字节1 值252 表示磁力计自检失败
             Dbp("\t calibration fail, compass error\r\n");
         }
         else if (buf[1] == 251)
-        {// �ֽ�1 ֵ251 ��ʾ�豸δ��У׼��
+        {// 字节1 值251 表示设备未在校准中
             Dbp("\t calibration fail, Hasn't started\r\n");
         }
         else if (buf[1] != 0)
-        {// ֵ[1-250] ��ʾ��ǰ�Ѳɼ��Ĵ���
+        {// 值[1-250] 表示当前已采集的次数
             Dbp("\t calibration, Points collected is %u\r\n", buf[1]);
         }
         else
-        {// ֵ0 ��ʾģ���Ѿ���У׼��
+        {// 值0 表示模块已经在校准中
             Dbp("\t calibration is running\r\n");
         }
         break;
-    case 0x18: // �ѹر������ϱ� �ظ�
+    case 0x18: // 已关闭主动上报 回复
         Dbp("\t auto report off\r\n");
         break;
-    case 0x19: // �Ѵ������ϱ� �ظ�
+    case 0x19: // 已打开主动上报 回复
         Dbp("\t auto report on\r\n");
         break;
-    case 0x20: // ����PCB��װ������� �ظ�
+    case 0x20: // 设置PCB安装方向矩阵 回复
         Dbp("\t set PCB direction success\r\n");
         break;
-    case 0x21: // ������ ��ȡ��װ�������
+    case 0x21: // 是请求 读取安装方向矩阵
         Dbp_U8_buf("\t get PCB direction: 0x[", "]\r\n",
                    "%02x ",
-                   &buf[1], 9); // �ֽ�[1-9]     Ϊ���ټư�װ�������
+                   &buf[1], 9); // 字节[1-9]     为加速计安装方向矩阵
         Dbp_U8_buf("\t get PCB direction: 0x[", "]\r\n",
                    "%02x ",
-                   &buf[10], 9); // �ֽ�[10-18] Ϊ�����ư�װ�������
+                   &buf[10], 9); // 字节[10-18] 为磁力计安装方向矩阵
         break;
-    case 0x22: // ������ ���������㲥����
+    case 0x22: // 是请求 设置蓝牙广播名称
         Dbp("\t set BLE name success\r\n");
         break;
-    case 0x23: // ��ȡ�����㲥���� �ظ�
-        Dbp("\t get BLE name: %s\r\n", &buf[1]); // �ֽ�[1-16] Ϊ�����㲥�����ַ���
+    case 0x23: // 读取蓝牙广播名称 回复
+        Dbp("\t get BLE name: %s\r\n", &buf[1]); // 字节[1-16] 为蓝牙广播名称字符串
         break;
-    case 0x24: // ���ùػ���ѹ�ͳ����� �ظ�
+    case 0x24: // 设置关机电压和充电参数 回复
         Dbp("\t set PowerDownVoltage and charge parameters success\r\n");
         break;
-    case 0x25: // ��ȡ�ػ���ѹ�ͳ����� �ظ�
-        Dbp("\t PowerDownVoltageFlag: %u\r\n", buf[1]); // �ֽ�1 �ػ���ѹѡ���־ 0��ʾ3.4V, 1��ʾ2.7V
-        Dbp("\t charge_full_mV: %u\r\n", buf[2]); // �ֽ�2 ����ֹ��ѹ 0:3962mv 1:4002mv 2:4044mv 3:4086mv 4:4130mv 5:4175mv 6:4222mv 7:4270mv 8:4308mv 9:4349mv 10:4391mv
-        Dbp("\t charge_full_mA: %u ma\r\n", buf[3]); // �ֽ�3 ����ֹ���� 0:2ma 1:5ma 2:7ma 3:10ma 4:15ma 5:20ma 6:25ma 7:30ma
-        Dbp("\t charge_mA: %u ma\r\n", buf[4]); // �ֽ�3 ������ 0:20ma 1:30ma 2:40ma 3:50ma 4:60ma 5:70ma 6:80ma 7:90ma 8:100ma 9:110ma 10:120ma 11:140ma 12:160ma 13:180ma 14:200ma 15:220ma
+    case 0x25: // 读取关机电压和充电参数 回复
+        Dbp("\t PowerDownVoltageFlag: %u\r\n", buf[1]); // 字节1 关机电压选择标志 0表示3.4V, 1表示2.7V
+        Dbp("\t charge_full_mV: %u\r\n", buf[2]); // 字节2 充电截止电压 0:3962mv 1:4002mv 2:4044mv 3:4086mv 4:4130mv 5:4175mv 6:4222mv 7:4270mv 8:4308mv 9:4349mv 10:4391mv
+        Dbp("\t charge_full_mA: %u ma\r\n", buf[3]); // 字节3 充电截止电流 0:2ma 1:5ma 2:7ma 3:10ma 4:15ma 5:20ma 6:25ma 7:30ma
+        Dbp("\t charge_mA: %u ma\r\n", buf[4]); // 字节3 充电电流 0:20ma 1:30ma 2:40ma 3:50ma 4:60ma 5:70ma 6:80ma 7:90ma 8:100ma 9:110ma 10:120ma 11:140ma 12:160ma 13:180ma 14:200ma 15:220ma
         break;
-    case 0x27: // �����û���GPIO���� �ظ�
+    case 0x27: // 设置用户的GPIO引脚 回复
         Dbp("\t set gpio success\r\n");
         break;
-    case 0x2A: // �����豸 �ظ�
+    case 0x2A: // 重启设备 回复
         Dbp("\t will reset\r\n");
         break;
-    case 0x2B: // �豸�ػ� �ظ�
+    case 0x2B: // 设备关机 回复
         Dbp("\t will power off\r\n");
         break;
-    case 0x2C: // ���ÿ��йػ�ʱ�� �ظ�
+    case 0x2C: // 设置空闲关机时长 回复
         Dbp("\t set idleToPowerOffTime success\r\n");
         break;
-    case 0x2D: // ��ȡ���йػ�ʱ�� �ظ�
+    case 0x2D: // 读取空闲关机时长 回复
         Dbp("\t idleToPowerOffTime:%u minutes\r\n", buf[1]*10);
         break;
-    case 0x2E: // ���ý�ֹ������ʽ�������ƺͳ�������ʶ �ظ�
+    case 0x2E: // 设置禁止蓝牙方式更改名称和充电参数标识 回复
         Dbp("\t set FlagForDisableBleSetNameAndCahrge success\r\n");
         break;
-    case 0x2F: // ��ȡ��ֹ������ʽ�������ƺͳ�������ʶ �ظ�
+    case 0x2F: // 读取禁止蓝牙方式更改名称和充电参数标识 回复
         Dbp("\t FlagForDisableBleSetNameAndCahrge:%u\r\n", buf[1]);
         break;
-    case 0x30: // ���ô���ͨ�ŵ�ַ �ظ�
+    case 0x30: // 设置串口通信地址 回复
         Dbp("\t set address success\r\n");
         break;
-    case 0x31: // ��ȡ����ͨ�ŵ�ַ �ظ�
+    case 0x31: // 读取串口通信地址 回复
         Dbp("\t address:%u\r\n", buf[1]);
         break;
-    case 0x33: // ���ü��ټƺ����������� �ظ�
+    case 0x33: // 设置加速计和陀螺仪量程 回复
         Dbp("\t set accelRange and gyroRange success\r\n");
         break;
-    case 0x34: // ��ȡ���ټƺ����������� �ظ�
+    case 0x34: // 读取加速计和陀螺仪量程 回复
         Dbp("\t accelRange:%u gyroRange:%u\r\n", buf[1], buf[2]);
         break;
-    case 0x35: // �����������Զ�У����ʶ �ظ�
+    case 0x35: // 设置陀螺仪自动校正标识 回复
         Dbp("\t set GyroAutoFlag success\r\n");
         break;
-    case 0x36: // ��ȡ�������Զ�У����ʶ �ظ�
+    case 0x36: // 读取陀螺仪自动校正标识 回复
         Dbp("\t GyroAutoFlag:%u\r\n", buf[1]);
         break;
-    case 0x37: // ���þ�ֹ����ģʽ�Ĵ���ʱ�� �ظ�
+    case 0x37: // 设置静止节能模式的触发时长 回复
         Dbp("\t set EcoTime success\r\n");
         break;
-    case 0x38: // ��ȡ��ֹ����ģʽ�Ĵ���ʱ�� �ظ�
+    case 0x38: // 读取静止节能模式的触发时长 回复
         Dbp("\t EcoTime:%u\r\n", buf[1]);
         break;
 
@@ -871,8 +871,8 @@ static void Cmd_RxUnpack(U8 *buf, U8 DLen)
 
 
 
-// ======================================����ʾ��==============================================
-U8 im948_ctl = 0; // �û����Կڷ�����1�ֽڲ���ָ�� ���Կ��յ������ݸ�ֵ��im948_ctl ��ѭ������� im948_test() ������ʾ
+// ======================================测试示例==============================================
+U8 im948_ctl = 0; // 用户调试口发来的1字节操作指令 调试口收到的数据赋值给im948_ctl 主循环里调用 im948_test() 进行演示
 void im948_test(void)
 {
     U8 ctl = im948_ctl;
@@ -883,126 +883,126 @@ void im948_test(void)
 
     switch (ctl)
     {
-    case '1':// 1 ˯�ߴ�����
+    case '1':// 1 睡眠传感器
         Cmd_02();
         break;
-    case '2':// 2 ���Ѵ�����
+    case '2':// 2 唤醒传感器
         Cmd_03();
         break;
 
-    case '3':// 3 �ر����������ϱ�
+    case '3':// 3 关闭数据主动上报
         Cmd_18();
         break;
-    case '4':// 4 �������������ϱ�
+    case '4':// 4 开启数据主动上报
         Cmd_19();
         break;
 
-    case '5':// 5 ��ȡ1�ζ��ĵĹ�������
+    case '5':// 5 获取1次订阅的功能数据
         Cmd_11();
         break;
 
-    case '6':// 6 ��ȡ�豸���Ժ�״̬
+    case '6':// 6 获取设备属性和状态
         Cmd_10();
         break;
-    case '7':// 7 �����豸����(����1)
+    case '7':// 7 设置设备参数(内容1)
         /**
-         * �����豸����
-         * @param accStill    �ߵ�-��ֹ״̬���ٶȷ�ֵ ��λdm/s?
-         * @param stillToZero �ߵ�-��ֹ�����ٶ�(��λcm/s) 0:������ 255:��������
-         * @param moveToZero  �ߵ�-��̬�����ٶ�(��λcm/s) 0:������
-         * @param isCompassOn 1=�迪���ų� 0=��رմų�
-         * @param barometerFilter ��ѹ�Ƶ��˲��ȼ�[ȡֵ0-3],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-         * @param reportHz ���������ϱ��Ĵ���֡��[ȡֵ0-250HZ], 0��ʾ0.5HZ
-         * @param gyroFilter    �������˲�ϵ��[ȡֵ0-2],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-         * @param accFilter     ���ټ��˲�ϵ��[ȡֵ0-4],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-         * @param compassFilter �������˲�ϵ��[ȡֵ0-9],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-         * @param Cmd_ReportTag ���ܶ��ı�ʶ
+         * 设置设备参数
+         * @param accStill    惯导-静止状态加速度阀值 单位dm/s?
+         * @param stillToZero 惯导-静止归零速度(单位cm/s) 0:不归零 255:立即归零
+         * @param moveToZero  惯导-动态归零速度(单位cm/s) 0:不归零
+         * @param isCompassOn 1=需开启磁场 0=需关闭磁场
+         * @param barometerFilter 气压计的滤波等级[取值0-3],数值越大越平稳但实时性越差
+         * @param reportHz 数据主动上报的传输帧率[取值0-250HZ], 0表示0.5HZ
+         * @param gyroFilter    陀螺仪滤波系数[取值0-2],数值越大越平稳但实时性越差
+         * @param accFilter     加速计滤波系数[取值0-4],数值越大越平稳但实时性越差
+         * @param compassFilter 磁力计滤波系数[取值0-9],数值越大越平稳但实时性越差
+         * @param Cmd_ReportTag 功能订阅标识
          */
         Cmd_12(5, 255, 0,  1, 3, 2, 2, 4, 9, 0xFFFF);
         break;
-    case '8':// 8 �����豸����(����2)
+    case '8':// 8 设置设备参数(内容2)
         Cmd_12(8,   6, 5,  0, 1,30, 1, 2, 7, 0x0002);
         break;
 
-    case '9':// 9 �ߵ���ά�ռ�λ������
+    case '9':// 9 惯导三维空间位置清零
         Cmd_13();
         break;
-    case 'a':// a �Ʋ�������
+    case 'a':// a 计步数清零
         Cmd_16();
         break;
 
-    case 'b':// b �ָ�����У׼����
+    case 'b':// b 恢复出厂校准参数
         Cmd_14();
         break;
-    case 'c':// c ���浱ǰУ׼����Ϊ����У׼����
+    case 'c':// c 保存当前校准参数为出厂校准参数
         Cmd_15();
         break;
 
-    case 'd':// d ���ټƼ���У׼
+    case 'd':// d 加速计简易校准
         Cmd_07();
         break;
 
-    case 'e':// e ���ټƸ߾���У׼ ��ʼ
+    case 'e':// e 加速计高精度校准 开始
         /**
-         * ���ټƸ߾���У׼
-         * @param flag ��ģ��δ����У׼״̬ʱ��
-         *                 ֵ0 ��ʾ����ʼһ��У׼���ɼ�1������
-         *                 ֵ255 ��ʾѯ���豸�Ƿ�����У׼
-         *             ��ģ������У׼��:
-         *                 ֵ1 ��ʾҪ�ɼ���1������
-         *                 ֵ255 ��ʾҪ�ɼ����1�����ݲ�����
+         * 加速计高精度校准
+         * @param flag 若模块未处于校准状态时：
+         *                 值0 表示请求开始一次校准并采集1个数据
+         *                 值255 表示询问设备是否正在校准
+         *             若模块正在校准中:
+         *                 值1 表示要采集下1个数据
+         *                 值255 表示要采集最后1个数据并结束
          */
         Cmd_17(0);
         break;
-    case 'f':// f ���ټƸ߾���У׼ �ɼ�1���� �����ٲɼ�6����ֹ��ĵ�
+    case 'f':// f 加速计高精度校准 采集1个点 请最少采集6个静止面的点
         /**
-         * ���ټƸ߾���У׼
-         * @param flag ��ģ��δ����У׼״̬ʱ��
-         *                 ֵ0 ��ʾ����ʼһ��У׼���ɼ�1������
-         *                 ֵ255 ��ʾѯ���豸�Ƿ�����У׼
-         *             ��ģ������У׼��:
-         *                 ֵ1 ��ʾҪ�ɼ���1������
-         *                 ֵ255 ��ʾҪ�ɼ����1�����ݲ�����
+         * 加速计高精度校准
+         * @param flag 若模块未处于校准状态时：
+         *                 值0 表示请求开始一次校准并采集1个数据
+         *                 值255 表示询问设备是否正在校准
+         *             若模块正在校准中:
+         *                 值1 表示要采集下1个数据
+         *                 值255 表示要采集最后1个数据并结束
          */
         Cmd_17(1);
         break;
-    case 'g':// g ���ټƸ߾���У׼ �ɼ����1�����ݲ����� ��ѯ���豸�Ƿ�����У׼
+    case 'g':// g 加速计高精度校准 采集最后1个数据并结束 或询问设备是否正在校准
         /**
-         * ���ټƸ߾���У׼
-         * @param flag ��ģ��δ����У׼״̬ʱ��
-         *                 ֵ0 ��ʾ����ʼһ��У׼���ɼ�1������
-         *                 ֵ255 ��ʾѯ���豸�Ƿ�����У׼
-         *             ��ģ������У׼��:
-         *                 ֵ1 ��ʾҪ�ɼ���1������
-         *                 ֵ255 ��ʾҪ�ɼ����1�����ݲ�����
+         * 加速计高精度校准
+         * @param flag 若模块未处于校准状态时：
+         *                 值0 表示请求开始一次校准并采集1个数据
+         *                 值255 表示询问设备是否正在校准
+         *             若模块正在校准中:
+         *                 值1 表示要采集下1个数据
+         *                 值255 表示要采集最后1个数据并结束
          */
         Cmd_17(255);
         break;
-    case 'H':// H ��ʼ������У׼
+    case 'H':// H 开始磁力计校准
         Cmd_32();
-    case 'h':// h ����������У׼
+    case 'h':// h 结束磁力计校准
         Cmd_04();
         break;
-    case 'i':// i z��ǹ���
+    case 'i':// i z轴角归零
         Cmd_05();
         break;
-    case 'j':// j xyz��������ϵ����
+    case 'j':// j xyz世界坐标系清零
         Cmd_06();
         break;
-    case 'k':// k �ָ�Ĭ�ϵ���������ϵZ��ָ�򼰻ָ�Ĭ�ϵ���������ϵ
+    case 'k':// k 恢复默认的自身坐标系Z轴指向及恢复默认的世界坐标系
         Cmd_08();
         break;
 
-    case 'l':// l ����PCB��װ������� Ϊģ���˿ӡ��ʶ����
+    case 'l':// l 设置PCB安装方向矩阵 为模块的丝印标识方向
         {
             S8 accMatrix[9] =
-            {// ���ټ���ģ���ʶ����һ��
+            {// 加速计与模块标识方向一致
                 1, 0, 0,
                 0, 1, 0,
                 0, 0, 1
             };
             S8 comMatrix[9] =
-            {// ��������ģ���ʶ����һ��
+            {// 磁力计与模块标识方向一致
                 1, 0, 0,
                 0,-1, 0,
                 0, 0,-1
@@ -1010,16 +1010,16 @@ void im948_test(void)
             Cmd_20(accMatrix, comMatrix);
         }
         break;
-    case 'm':// m ����PCB��װ������� Ϊģ���˿ӡ��ʶ������x����ת90�� ���ŷ�
+    case 'm':// m 设置PCB安装方向矩阵 为模块的丝印标识方向绕x轴正转90度 竖着放
         {
             S8 accMatrix[9] =
-            {// ���� �����ټ���ģ���x����ת90��  ok
+            {// 竖放 即加速计绕模块的x轴正转90度  ok
                 1, 0, 0,
                 0, 0,-1,
                 0, 1, 0
             };
             S8 comMatrix[9] =
-            {// ���� ����������ģ���x����ת90��  ok
+            {// 竖放 即磁力计绕模块的x轴正转90度  ok
                 1, 0, 0,
                 0, 0, 1,
                 0,-1, 0
@@ -1027,111 +1027,111 @@ void im948_test(void)
             Cmd_20(accMatrix, comMatrix);
         }
         break;
-    case 'n': // n ��ȡPCB��װ�������
+    case 'n': // n 读取PCB安装方向矩阵
         Cmd_21();
         break;
 
-    case 'o': // o ���������㲥����Ϊ im948
+    case 'o': // o 设置蓝牙广播名称为 im948
         Cmd_22("im948");
         break;
-    case 'p': // p ���������㲥����Ϊ helloBle
+    case 'p': // p 设置蓝牙广播名称为 helloBle
         Cmd_22("helloBle");
         break;
-    case 'q': // q ��ȡ�����㲥����
+    case 'q': // q 读取蓝牙广播名称
         Cmd_23();
         break;
 
-    case 'r': // r ����Ϊ�ػ���ѹ2.7V  ����ֹ��ѹ4.22V  ����ֹ����10ma ������50ma  ģ�����Ĭ�Ͼ����������
+    case 'r': // r 设置为关机电压2.7V  充电截止电压4.22V  充电截止电流10ma 充电电流50ma  模块出厂默认就是这个配置
         Cmd_24(  1,                   6,                 3,              3);
         break;
-    case 's': // s ����Ϊ�ػ���ѹ3.4V  ����ֹ��ѹ4.22V  ����ֹ����15ma  ������200ma
+    case 's': // s 设置为关机电压3.4V  充电截止电压4.22V  充电截止电流15ma  充电电流200ma
         Cmd_24(  0,                   6,                 4,              14);
         break;
-    case 't': // t ��ȡ AD1���ŵ�ѹ��ⷶΧ��������͡��ػ���ѹ
+    case 't': // t 读取 AD1引脚电压检测范围、电池类型、关机电压
         Cmd_25();
         break;
 
-    case 'u': // u �Ͽ���������
+    case 'u': // u 断开蓝牙连接
         Cmd_26();
         break;
 
-    case 'v': // v �����û���GPIO���� ��Ϊ��������
+    case 'v': // v 设置用户的GPIO引脚 设为上拉输入
         Cmd_27(1);
         break;
-    case 'w': // w �����û���GPIO���� ��Ϊ��������
+    case 'w': // w 设置用户的GPIO引脚 设为下拉输入
         Cmd_27(2);
         break;
 
 
-    case 'x': // x �����豸
+    case 'x': // x 重启设备
         Cmd_2A();
         break;
-    case 'y': // y �豸�ػ�
+    case 'y': // y 设备关机
         Cmd_2B();
         break;
 
-    case 'z': // z ���ÿ��йػ�ʱ��
-        Cmd_2C(0); // ���в��Զ��ػ�
+    case 'z': // z 设置空闲关机时长
+        Cmd_2C(0); // 空闲不自动关机
         break;
-    case 'A': // A ���ÿ��йػ�ʱ��
-        Cmd_2C(144); // ��������1���Զ��ػ�(��Ҳ�ǳ���Ĭ��ֵ)
+    case 'A': // A 设置空闲关机时长
+        Cmd_2C(144); // 连续空闲1天自动关机(这也是出厂默认值)
         break;
-    case 'B': // B ��ȡ���йػ�ʱ��
+    case 'B': // B 读取空闲关机时长
         Cmd_2D();
         break;
 
-    case 'C': // C ���ý�ֹ������ʽ�������ƺͳ�������ʶ
-        Cmd_2E(0); // ��Ϊ����(��Ҳ�ǳ���Ĭ��ֵ)
+    case 'C': // C 设置禁止蓝牙方式更改名称和充电参数标识
+        Cmd_2E(0); // 设为允许(这也是出厂默认值)
         break;
-    case 'D': // D ���ý�ֹ������ʽ�������ƺͳ�������ʶ
-        Cmd_2E(1); // ��Ϊ��ֹ
+    case 'D': // D 设置禁止蓝牙方式更改名称和充电参数标识
+        Cmd_2E(1); // 设为禁止
         break;
-    case 'E': // E ��ȡ��ֹ������ʽ�������ƺͳ�������ʶ
+    case 'E': // E 读取禁止蓝牙方式更改名称和充电参数标识
         Cmd_2F();
         break;
 
-    case 'F': // F ���ô���ͨ�ŵ�ַ ֻ������Ϊ0-254
-        Cmd_30(0); // ��Ϊ0(��Ҳ�ǳ���Ĭ��ֵ)
+    case 'F': // F 设置串口通信地址 只能设置为0-254
+        Cmd_30(0); // 设为0(这也是出厂默认值)
         break;
-    case 'G': // G ���ô���ͨ�ŵ�ַ
-        Cmd_30(1); // ��Ϊ1
+    case 'G': // G 设置串口通信地址
+        Cmd_30(1); // 设为1
         break;
-    case 'I': // I ��ȡ����ͨ�ŵ�ַ
+    case 'I': // I 读取串口通信地址
         Cmd_31();
         break;
 
-    case 'J': // J ���ü��ټƺ�����������
+    case 'J': // J 设置加速计和陀螺仪量程
        /**
-        * ���� ���ټƺ�����������
-        * @param AccRange  Ŀ����ٶ����� 0=2g 1=4g 2=8g 3=16g
-        * @param GyroRange Ŀ������������ 0=256 1=512 2=1024 3=2048
+        * 设置 加速计和陀螺仪量程
+        * @param AccRange  目标加速度量程 0=2g 1=4g 2=8g 3=16g
+        * @param GyroRange 目标陀螺仪量程 0=256 1=512 2=1024 3=2048
         */
-        Cmd_33(3, 3); // ��Ϊ���ټ�16g, ������2048dps
+        Cmd_33(3, 3); // 设为加速计16g, 陀螺仪2048dps
         break;
-    case 'K': // K ���ü��ټƺ�����������
-        Cmd_33(1, 2); // ��Ϊ���ټ�4g, ������1024dps
+    case 'K': // K 设置加速计和陀螺仪量程
+        Cmd_33(1, 2); // 设为加速计4g, 陀螺仪1024dps
         break;
-    case 'L': // L ��ȡ���ټƺ�����������
+    case 'L': // L 读取加速计和陀螺仪量程
         Cmd_34();
         break;
 
-    case 'M': // M �����������Զ�У����ʶ 1=�������Զ�У�������ȿ�  0=��
-        Cmd_35(1); // ��Ϊ1����(��Ҳ�ǳ���Ĭ��ֵ)
+    case 'M': // M 设置陀螺仪自动校正标识 1=陀螺仪自动校正灵敏度开  0=关
+        Cmd_35(1); // 设为1开启(这也是出厂默认值)
         break;
-    case 'N': // N �����������Զ�У����ʶ
-        Cmd_35(0); // ��Ϊ0�ر�
+    case 'N': // N 设置陀螺仪自动校正标识
+        Cmd_35(0); // 设为0关闭
         break;
-    case 'O': // O ��ȡ�������Զ�У����ʶ
+    case 'O': // O 读取陀螺仪自动校正标识
         Cmd_36();
         break;
 
-    case 'P': // P ���þ�ֹ����ģʽ�Ĵ���ʱ�� EcoTime_10s����0�������Զ�����ģʽ(��������˯�ߺ������ϱ�����ֹEcoTime_10s��10���Զ������˶����ģʽ����ͣ�����ϱ�)  0=�������Զ�����
-        Cmd_37(0); // ��Ϊ0�ر�(��Ҳ�ǳ���Ĭ��ֵ)
+    case 'P': // P 设置静止节能模式的触发时长 EcoTime_10s大于0，则开启自动节能模式(即传感器睡眠后不主动上报，或静止EcoTime_10s个10秒自动进入运动监测模式且暂停主动上报)  0=不启用自动节能
+        Cmd_37(0); // 设为0关闭(这也是出厂默认值)
         break;
-    case 'Q': // Q ���þ�ֹ����ģʽ�Ĵ���ʱ��
-        Cmd_37(6*5); // ��Ϊ5����
+    case 'Q': // Q 设置静止节能模式的触发时长
+        Cmd_37(6*5); // 设为5分钟
         break;
-    case 'R': // R ��ȡ��ֹ����ģʽ�Ĵ���ʱ��
+    case 'R': // R 读取静止节能模式的触发时长
         Cmd_38();
         break;
 
@@ -1140,41 +1140,41 @@ void im948_test(void)
 
 void IM948_Init(void)
 {
-	  targetDeviceAddress = 255; // ����Ŀ���ַΪ�㲥��ַ255������ƥ�������豸
-    // ���Ѵ������������úô���������������Ȼ���������ϱ�---------------
+	  targetDeviceAddress = 255; // 设置目标地址为广播地址255，即可匹配所有设备
+    // 唤醒传感器，并配置好传感器工作参数，然后开启主动上报---------------
 		delay_ms(20);
-        Cmd_03();// 2 ���Ѵ�����
+        Cmd_03();// 2 唤醒传感器
 		delay_ms(20);
     /**
-       * �����豸����
-     * @param accStill    �ߵ�-��ֹ״̬���ٶȷ�ֵ ��λdm/s?
-     * @param stillToZero �ߵ�-��ֹ�����ٶ�(��λcm/s) 0:������ 255:��������
-     * @param moveToZero  �ߵ�-��̬�����ٶ�(��λcm/s) 0:������
-     * @param isCompassOn 1=�迪���ų� 0=��رմų�
-     * @param barometerFilter ��ѹ�Ƶ��˲��ȼ�[ȡֵ0-3],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-     * @param reportHz ����8���ϱ��Ĵ���֡��[ȡֵ0-250HZ], 0��ʾ0.5HZ
-     * @param gyroFilter    �������˲�ϵ��[ȡֵ0-2],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-     * @param accFilter     ���ټ��˲�ϵ��[ȡֵ0-4],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-     * @param compassFilter �������˲�ϵ��[ȡֵ0-9],��ֵԽ��Խƽ�ȵ�ʵʱ��Խ��
-     * @param Cmd_ReportTag ���ܶ��ı�ʶ
+       * 设置设备参数
+     * @param accStill    惯导-静止状态加速度阀值 单位dm/s?
+     * @param stillToZero 惯导-静止归零速度(单位cm/s) 0:不归零 255:立即归零
+     * @param moveToZero  惯导-动态归零速度(单位cm/s) 0:不归零
+     * @param isCompassOn 1=需开启磁场 0=需关闭磁场
+     * @param barometerFilter 气压计的滤波等级[取值0-3],数值越大越平稳但实时性越差
+     * @param reportHz 数据8动上报的传输帧率[取值0-250HZ], 0表示0.5HZ
+     * @param gyroFilter    陀螺仪滤波系数[取值0-2],数值越大越平稳但实时性越差
+     * @param accFilter     加速计滤波系数[取值0-4],数值越大越平稳但实时性越差
+     * @param compassFilter 磁力计滤波系数[取值0-9],数值越大越平稳但实时性越差
+     * @param Cmd_ReportTag 功能订阅标识
      */
-    Cmd_12(5, 255, 0,  0, 3, 200, 1, 2, 9, 0x40);// 7 �����豸����(ֻ��ȡŷ����)//0x40
+    Cmd_12(5, 255, 0,  0, 3, 200, 1, 2, 9, 0x40);// 7 设置设备参数(只读取欧拉角)//0x40
 		//Cmd_12(5, 255, 0,  0, 3, 200, 1, 2, 9, 0xC0);
 		delay_ms(20);
-    Cmd_19();// 4 �������������ϱ�
+    Cmd_19();// 4 开启数据主动上报
 		delay_ms(20);
 		Cmd_08();
 		delay_ms(20);
 //		Cmd_13();
 //		delay_ms(20);
-		Cmd_05();   //z������
+		Cmd_05();   //z轴清零
 		delay_ms(20);
-	  Cmd_06();   // j xyz��������ϵ����//���ܿ��Բ�Ҫ���
+	  Cmd_06();   // j xyz世界坐标系清零//可能可以不要这个
 		delay_ms(20);
-    Cmd_16();	//�Ʋ�����0
+    Cmd_16();	//计步数清0
 		delay_ms(20);
-//		Cmd_2C(1);//10���ӹػ�
-////		Cmd_37(6*5); // ��Ϊ5�����Զ�����
+//		Cmd_2C(1);//10分钟关机
+////		Cmd_37(6*5); // 设为5分钟自动休眠
 
 }
 
@@ -1197,7 +1197,7 @@ void Yaw_judge_zero(void)
 			break;
 		else if(Yaw_error_flag>=10)
 		{
-			break;//����Ҫ��������־λ
+			break;//这里要给他个标志位
 		}
 		else
 		{
@@ -1206,42 +1206,42 @@ void Yaw_judge_zero(void)
 			Cmd_05();
 		}
 	}
-	
+
 }
 
 /**
- * ��������  ��Ҫ�û�ʵ������Ĵ��ڷ������ݷ���-------------------------------------
- * @param pBuf Ҫ���͵�����ָ��
- * @param Len Ҫ���͵��ֽ���
+ * 发送数据  需要用户实现里面的串口发送数据方法-------------------------------------
+ * @param pBuf 要发送的内容指针
+ * @param Len 要发送的字节数
  */
 static void Cmd_Write(U8 *pBuf, int Len)
 {
-    // ͨ��UART_Write��������ͨ�������������û���Եײ�Ӳ��ʵ��UART_Write������bufָ��ָ���Len�ֽ����ݷ��ͳ�ȥ����
+    // 通过UART_Write函数发送通信数据流，由用户针对底层硬件实现UART_Write函数把buf指针指向的Len字节数据发送出去即可
     uart2_WriteBuf(pBuf,Len);
 }
 
 
-void USART2_IRQHandler(void)                      // �����жϷ������
+void USART2_IRQHandler(void)                      // 串口中断服务程序
 {
-    if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) // �����ж�
+    if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) // 接收中断
     {
-        u8 Res = USART_ReceiveData(USART2); // ��ȡ���ݺ�RXNE ��־λ�Զ����
+        u8 Res = USART_ReceiveData(USART2); // 读取数据后，RXNE 标志位自动清除
         Cmd_GetPkt(Res);
 /*
-				ǧ����ʹ�������д��룬��������ȥ�жϣ����ܸ�оƬ������
-				
-        USART_ClearFlag(USART2,USART_FLAG_RXNE);//���RXNE��־λ
-        USART_ClearITPendingBit(USART2, USART_IT_RXNE); // ����жϹ���λ
+				千万不能使用这两行代码，否则会进不去中断，可能跟芯片有问题
+
+        USART_ClearFlag(USART2,USART_FLAG_RXNE);//清除RXNE标志位
+        USART_ClearITPendingBit(USART2, USART_IT_RXNE); // 清除中断挂起位
 */
     }
 
-    // ����Ƿ��� ORE �������
+    // 检查是否有 ORE 溢出错误
     if (USART_GetFlagStatus(USART2, USART_FLAG_ORE) != RESET)
     {
-        // ��� ORE �����־λ
+        // 清除 ORE 错误标志位
         USART_ClearFlag(USART2, USART_FLAG_ORE);
-         // ��� RXNE ��־λ���������յ�������
+         // 清除 RXNE 标志位，丢弃接收到的数据
         USART_ReceiveData(USART2);
-  
+
     }
 }

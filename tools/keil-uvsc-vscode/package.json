@@ -1,0 +1,41 @@
+{
+  "name": "robot2-keil-uvsc",
+  "displayName": "Robot2 Keil UVSC Debug",
+  "description": "Use Keil's native UVSC/CMSIS-DAP engine from VS Code.",
+  "version": "0.1.0",
+  "publisher": "robot2-local",
+  "engines": { "vscode": ">=1.85.0" },
+  "main": "./extension.js",
+  "activationEvents": ["onDebug"],
+  "contributes": {
+    "debuggers": [
+      {
+        "type": "keil-uvsc",
+        "label": "Keil UVSC (CMSIS-DAP)",
+        "languages": ["c", "cpp"],
+        "configurationAttributes": {
+          "launch": {
+            "required": ["project", "executable"],
+            "properties": {
+              "project": { "type": "string" },
+              "executable": { "type": "string" },
+              "target": { "type": "string", "default": "hao" },
+              "uv4Dir": { "type": "string" },
+              "port": { "type": "number", "default": 4328 }
+            }
+          }
+        }
+      }
+    ],
+    "configuration": {
+      "title": "Robot2 Keil UVSC",
+      "properties": {
+        "robot2.pythonPath": {
+          "type": "string",
+          "default": "py",
+          "description": "Python executable used for the UVSC adapter"
+        }
+      }
+    }
+  }
+}

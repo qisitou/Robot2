@@ -5,7 +5,7 @@
 #define LED_ON      GPIO_ResetBits(GPIOD,GPIO_Pin_4)
 #define LED_OFF     GPIO_SetBits(GPIOD,GPIO_Pin_4)
 
-////LED¶Ë¿Ú¶¨Òå
+////LEDç«¯å£å®šä¹‰
 //#define LED1(flag) GPIO_WriteBit(GPIOE,GPIO_Pin_1,flag)
 #define LED1 PDout(4)
 #define LED2 PEout(2)
@@ -15,11 +15,11 @@
 #define RUN_LED_PIN GPIO_Pin_3
 #define INDICATE_LED_GPIO GPIOD
 #define INDICATE_LED_PIN GPIO_Pin_4
-//#define LED_ON GPIO_ResetBits(GPIOE,GPIO_Pin_7 | GPIO_Pin_8);//µ÷ÊÔÓÃ
+//#define LED_ON GPIO_ResetBits(GPIOE,GPIO_Pin_7 | GPIO_Pin_8);//è°ƒè¯•ç”¨
 
 extern u8 Indicate_Led_flag;
 
-void LED_Init(void);//³õÊ¼»¯
+void LED_Init(void);//åˆå§‹åŒ–
 void LED_DeInit(void);
 extern void led_set(u8 sta);
 void Indicate_Led_Close(void);

@@ -1,48 +1,59 @@
 #include <stdio.h>
 #include "cx522.h"
 #include "dma.h"
+#include "turnplate.h"   //Áî®Âà∞ HoleArr Âíå Hole_Now_Idx
 
 
 
-u8 cx522_allow = 1;  //∏≥÷µŒ™1∑Ω±„µ•‘™≤‚ ‘
+u8 cx522_allow = 1;  //????1?????????
 u8 cx522_rxbuf[50];
 
 /**
- * @brief  ≥ı ºªØCX522∂¡ø®∆˜
- * @param  Œﬁ
- * @retval Œﬁ
- * @note   ≈‰÷√UART4µƒDMAΩ” ’ƒ£ Ω
+ * @brief  ?????CX522??????
+ * @param  ??
+ * @retval ??
+ * @note   ????UART4??DMA??????
  */
 void cx522_Init(void)
 {
-    USART_DMACmd(CX522_UART, USART_DMAReq_Rx, ENABLE);  //  πƒ‹UART4µƒDMAΩ” ’«Î«Û
-    DMA_ITConfig(CX522_DMA_STREAMx, DMA_IT_TC, ENABLE);  //  πƒ‹DMA¥´ ‰ÕÍ≥…÷–∂œ
-    MYDMA_Enable(CX522_DMA_STREAMx, 23);  // ∆Ù∂ØDMAΩ” ’£¨√ø¥ŒΩ” ’23◊÷Ω⁄
+    USART_DMACmd(CX522_UART, USART_DMAReq_Rx, ENABLE);  // ???UART4??DMA????????
+    DMA_ITConfig(CX522_DMA_STREAMx, DMA_IT_TC, ENABLE);  // ???DMA???????????
+    MYDMA_Enable(CX522_DMA_STREAMx, 23);  // ????DMA????????????23???
 }
 
 
 /**
- * @brief  ¥¶¿ÌICø® ˝æ›
- * @param  Œﬁ
- * @retval Œﬁ
- * @note   —È÷§ ˝æ›÷°∏Ò Ω≤¢Ã·»°ICø®∫≈¬Î
+ * @brief  ????IC??????
+ * @param  ??
+ * @retval ??
+ * @note   ????????????????IC??????
  */
 void cx522_ProcessData(void)
 {
-    // —È÷§÷°Õ∑(0x20)∫Õ÷°Œ≤(0x03)
+    // ?????(0x20)?????(0x03)
     if(0x20 == cx522_rxbuf[0] && 0x03 == cx522_rxbuf[22])
     {
-        // —È÷§–£—ÈŒª(0x00±Ì æ≥…π¶)
+        // ?????????(0x00??????)
         if(0x00 == cx522_rxbuf[4])
         {
-            // ºÏ≤È «∑Ò‘ –Ì∂¡»°
             if(1 == cx522_allow)
             {
-                if(0x13 == cx522_rxbuf[10])
+                if(0x00 == cx522_rxbuf[1])
                 {
-                    // GPIO_ResetBits(GPIOD,GPIO_Pin_4);
-                }
+                  
+					HoleArr[Hole_Now_Idx].ic = cx522_rxbuf[10];
                 
+//                     if(Hole_Now_Idx != 0)
+//                     {
+//                         HoleArr[Hole_Now_Idx-1].ic = cx522_rxbuf[10];
+// //                            printf("Id:%d,ic:%#x ",Hole_Now_Idx-1,cx522_rxbuf[10]);
+//                     }
+//                     else
+//                     {
+//                         HoleArr[9].ic = cx522_rxbuf[10];
+// //                            printf("Id:%d,ic:%#x ",9,cx522_rxbuf[10]);
+//                     }
+                }
             }
         }
     }
@@ -50,19 +61,19 @@ void cx522_ProcessData(void)
 
 
 /**
- * @brief  DMA1_Stream2÷–∂œ¥¶¿Ì∫Ø ˝
- * @param  Œﬁ
- * @retval Œﬁ
- * @note   ¥¶¿ÌDMAΩ” ’ÕÍ≥…÷–∂œ£¨¥¶¿Ì ˝æ›≤¢÷ÿ–¬∆Ù∂ØDMA
+ * @brief  DMA1_Stream2???????????
+ * @param  ??
+ * @retval ??
+ * @note   ????DMA?????????????????????????????DMA
  */
 void CX522_IRQHandler(void)
 {
-    // ºÏ≤ÈDMA¥´ ‰ÕÍ≥…÷–∂œ
+    // ???DMA???????????
     if(DMA_GetITStatus(CX522_DMA_STREAMx, DMA_IT_TCIF2) != RESET)
     {
-        DMA_ClearITPendingBit(CX522_DMA_STREAMx, DMA_IT_TCIF2);  // «Â≥˝÷–∂œ±Í÷æ
-        cx522_ProcessData();  // ¥¶¿ÌΩ” ’µΩµƒ ˝æ›
-        MYDMA_Enable(CX522_DMA_STREAMx, 23);  // ÷ÿ–¬∆Ù∂ØDMAΩ” ’
+        DMA_ClearITPendingBit(CX522_DMA_STREAMx, DMA_IT_TCIF2);  // ?????????
+        cx522_ProcessData();  // ???????????????
+        MYDMA_Enable(CX522_DMA_STREAMx, 23);  // ????????DMA????
     }
 }
 

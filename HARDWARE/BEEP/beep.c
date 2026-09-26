@@ -4,19 +4,19 @@
 void Beep_Init(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure;
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE,ENABLE); //Ê¹ÄÜGPIOEÊ±ÖÓ
-  
-	
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE,ENABLE); //ä½¿èƒ½GPIOEæ—¶é’Ÿ
+
+
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//ÆÕÍ¨Êä³öÄ£Ê½
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//ÍÆÍìÊä³ö
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//æ™®é€šè¾“å‡ºæ¨¡å¼
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//æ¨æŒ½è¾“å‡º
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ÏÂÀ­
-  GPIO_Init(GPIOE, &GPIO_InitStructure);//³õÊ¼»¯GPIO
-	
-	
-  GPIO_SetBits(GPIOE,GPIO_Pin_8);//GPIOE8ÉèÖÃ¸ß£¬·äÃùÆ÷²»Ïì
-	
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ä¸‹æ‹‰
+  GPIO_Init(GPIOE, &GPIO_InitStructure);//åˆå§‹åŒ–GPIO
+
+
+  GPIO_SetBits(GPIOE,GPIO_Pin_8);//GPIOE8è®¾ç½®é«˜ï¼Œèœ‚é¸£å™¨ä¸å“
+
 }
 
 

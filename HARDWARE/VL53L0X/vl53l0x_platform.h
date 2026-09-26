@@ -5,20 +5,20 @@
 #include "vl53l0x_i2c.h"
 #include "vl53l0x_platform_log.h"
 
-//////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌĞòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßĞí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK Ì½Ë÷ÕßSTM32F407¿ª·¢°å
-//VL53L0X µ×²ãÇı¶¯ ´úÂë	   
-//ÕıµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//ĞŞ¸ÄÈÕÆÚ:2017/7/1
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖİÊĞĞÇÒíµç×Ó¿Æ¼¼ÓĞÏŞ¹«Ë¾ 2009-2019
-//All rights reserved									  
+//////////////////////////////////////////////////////////////////////////////////
+//æœ¬ç¨‹åºåªä¾›å­¦ä¹ ä½¿ç”¨ï¼Œæœªç»ä½œè€…è®¸å¯ï¼Œä¸å¾—ç”¨äºå…¶å®ƒä»»ä½•ç”¨é€”
+//ALIENTEK æ¢ç´¢è€…STM32F407å¼€å‘æ¿
+//VL53L0X åº•å±‚é©±åŠ¨ ä»£ç 
+//æ­£ç‚¹åŸå­@ALIENTEK
+//æŠ€æœ¯è®ºå›:www.openedv.com
+//ä¿®æ”¹æ—¥æœŸ:2017/7/1
+//ç‰ˆæœ¬ï¼šV1.0
+//ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶ã€‚
+//Copyright(C) å¹¿å·å¸‚æ˜Ÿç¿¼ç”µå­ç§‘æŠ€æœ‰é™å…¬å¸ 2009-2019
+//All rights reserved
 //////////////////////////////////////////////////////////////////////////////////
 
-//vl53l0xÉè±¸I2CĞÅÏ¢
+//vl53l0xè®¾å¤‡I2Cä¿¡æ¯
 typedef struct {
     VL53L0X_DevData_t Data;              /*!< embed ST Ewok Dev  data as "Data"*/
     /*!< user specific field */
@@ -31,7 +31,7 @@ typedef struct {
 
 typedef VL53L0X_Dev_t* VL53L0X_DEV;
 
-#define VL53L0X_MAX_I2C_XFER_SIZE  64 //¶¨ÒåI2CĞ´µÄ×î´ó×Ö½ÚÊı
+#define VL53L0X_MAX_I2C_XFER_SIZE  64 //å®šä¹‰I2Cå†™çš„æœ€å¤§å­—èŠ‚æ•°
 #define PALDevDataGet(Dev, field) (Dev->Data.field)
 #define PALDevDataSet(Dev, field, data) (Dev->Data.field)=(data)
 
@@ -48,5 +48,5 @@ VL53L0X_Error VL53L0X_RdDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t *data);
 VL53L0X_Error VL53L0X_PollingDelay(VL53L0X_DEV Dev);
 
 
-#endif 
+#endif
 

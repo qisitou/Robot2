@@ -2,14 +2,14 @@
 #define __USART3_H
 #include "stm32f4xx_conf.h"
 
-	
-#define EN_USART3_RX 			1		//Ê¹ÄÜ£¨1£©/½ûÖ¹£¨0£©´®¿Ú2½ÓÊÕ
-#define EN_PRINTF_USART3 		1		//Ê¹ÄÜ£¨1£©/½ûÖ¹£¨0£©printfº¯Êı
 
-#define USART_REC_LEN  			200  	//¶¨Òå×î´ó½ÓÊÕ×Ö½ÚÊı 200
+#define EN_USART3_RX 			1		//ä½¿èƒ½ï¼ˆ1ï¼‰/ç¦æ­¢ï¼ˆ0ï¼‰ä¸²å£2æ¥æ”¶
+#define EN_PRINTF_USART3 		1		//ä½¿èƒ½ï¼ˆ1ï¼‰/ç¦æ­¢ï¼ˆ0ï¼‰printfå‡½æ•°
 
-extern u8  USART_RX_BUF[USART_REC_LEN]; //½ÓÊÕ»º³å,×î´óUSART_REC_LEN¸ö×Ö½Ú.Ä©×Ö½ÚÎª»»ĞĞ·û
-extern u16 USART_RX_STA;         		//½ÓÊÕ×´Ì¬±ê¼Ç
+#define USART_REC_LEN  			200  	//å®šä¹‰æœ€å¤§æ¥æ”¶å­—èŠ‚æ•° 200
+
+extern u8  USART_RX_BUF[USART_REC_LEN]; //æ¥æ”¶ç¼“å†²,æœ€å¤§USART_REC_LENä¸ªå­—èŠ‚.æœ«å­—èŠ‚ä¸ºæ¢è¡Œç¬¦
+extern u16 USART_RX_STA;         		//æ¥æ”¶çŠ¶æ€æ ‡è®°
 
 void usart3_init(u32 bound);
 void uart3_WriteBuf(uint8_t *buf, uint8_t len);

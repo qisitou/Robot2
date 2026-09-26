@@ -13,3 +13,16 @@
 # eide template
 *.ept
 *.eide-template
+
+# Keil 编译生成文件
+/OBJ/
+/USER/DebugConfig/
+/USER/*.uvoptx
+/USER/*.uvguix*
+
+# Keil MDK-ARM output and local user state
+/MDK-ARM/OBJ/
+/MDK-ARM/Listings/
+/MDK-ARM/DebugConfig/
+/MDK-ARM/*.uvoptx
+/MDK-ARM/*.uvguix*

@@ -1,11 +1,11 @@
 #ifndef __KEY_H
-#define __KEY_H	 
-#include "sys.h" 
+#define __KEY_H
+#include "sys.h"
 
-///*ÏÂÃæµÄ·½Ê½ÊÇÍ¨¹ıÖ±½Ó²Ù×÷¿âº¯Êı·½Ê½¶ÁÈ¡IO*/
+///*ä¸‹é¢çš„æ–¹å¼æ˜¯é€šè¿‡ç›´æ¥æ“ä½œåº“å‡½æ•°æ–¹å¼è¯»å–IO*/
 //#define KEY1 		GPIO_ReadInputDataBit(GPIOD,GPIO_Pin_7) //
 //#define KEY2 		GPIO_ReadInputDataBit(GPIOF,GPIO_Pin_11)	//
-/*ÏÂÃæµÄ·½Ê½ÊÇÍ¨¹ıÖ±½Ó²Ù×÷¿âº¯Êı·½Ê½¶ÁÈ¡IO*/
+/*ä¸‹é¢çš„æ–¹å¼æ˜¯é€šè¿‡ç›´æ¥æ“ä½œåº“å‡½æ•°æ–¹å¼è¯»å–IO*/
 #define KEY1 		PDin(11)
 #define KEY2 		PCin(8)
 #define KEY3 		PCin(9)
@@ -19,7 +19,7 @@ extern volatile u8 Key2_flag;
 extern volatile u8 Key3_flag;
 
 
-void KEY_Init(void);	//IO³õÊ¼»¯
+void KEY_Init(void);	//IOåˆå§‹åŒ–
 
 
 #endif

@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright © 2016, STMicroelectronics International N.V.
+Copyright Â© 2016, STMicroelectronics International N.V.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -192,7 +192,7 @@ VL53L0X_Error VL53L0X_get_limit_check_info(VL53L0X_DEV Dev, uint16_t LimitCheckI
 
 
 
-	/* Range Status */   
+	/* Range Status */
 	#define  VL53L0X_STRING_RANGESTATUS_NONE                 "No Update     "
 	#define  VL53L0X_STRING_RANGESTATUS_RANGEVALID           "Range Valid   "
 	#define  VL53L0X_STRING_RANGESTATUS_SIGMA                "Sigma Fail    "

@@ -9,26 +9,26 @@ volatile u8 Key1_value = 0;
 volatile u8 Key2_value = 0;
 volatile u8 Key3_value = 0;
 
-//°´¼ü³õÊ¼»¯º¯Êı
+//æŒ‰é”®åˆå§‹åŒ–å‡½æ•°
 void KEY_Init(void)
 {
-	
+
     GPIO_InitTypeDef  GPIO_InitStructure;
     NVIC_InitTypeDef   NVIC_InitStructure;
     EXTI_InitTypeDef   EXTI_InitStructure;
 
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);//Ê¹ÄÜGPIOCÊ±ÖÓ
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);//Ê¹ÄÜGPIODÊ±ÖÓ
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);//ä½¿èƒ½GPIOCæ—¶é’Ÿ
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);//ä½¿èƒ½GPIODæ—¶é’Ÿ
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11; // °´¼ü ¶ÔÓ¦Òı½Å
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//ÆÕÍ¨ÊäÈëÄ£Ê½
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11; // æŒ‰é”® å¯¹åº”å¼•è„š
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//æ™®é€šè¾“å…¥æ¨¡å¼
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100M
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ÉÏÀ­
-    GPIO_Init(GPIOD, &GPIO_InitStructure);//³õÊ¼»¯GPIOD1£¬4
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ä¸Šæ‹‰
+    GPIO_Init(GPIOD, &GPIO_InitStructure);//åˆå§‹åŒ–GPIOD1ï¼Œ4
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_8; // °´¼ü ¶ÔÓ¦Òı½Å
-    GPIO_Init(GPIOC, &GPIO_InitStructure);//³õÊ¼»¯GPIOD1£¬4
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_8; // æŒ‰é”® å¯¹åº”å¼•è„š
+    GPIO_Init(GPIOC, &GPIO_InitStructure);//åˆå§‹åŒ–GPIOD1ï¼Œ4
 
     SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource9);
     SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource8);

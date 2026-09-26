@@ -146,3 +146,36 @@ void PID_PositionCalc(PID_PositionInitTypedef* PID_InitStructure,float NowValue)
 	if(PID_InitStructure->OUT>PID_InitStructure->OUT_up)
 		PID_InitStructure->OUT=PID_InitStructure->OUT_up;
 }
+
+void PID_AngleCalc(PID_PositionInitTypedef* PID_InitStructure,float NowValue)
+{
+
+	PID_InitStructure->Now_Value=NowValue;
+	PID_InitStructure->Ek_1=PID_InitStructure->Ek;
+	
+	PID_InitStructure->Ek=PID_InitStructure->Need_Value-PID_InitStructure->Now_Value;
+	while(PID_InitStructure->Ek>180)PID_InitStructure->Ek-=360;
+	while(PID_InitStructure->Ek<-180)PID_InitStructure->Ek+=360;
+
+	if(PID_InitStructure->Ek_low<PID_InitStructure->Ek&&PID_InitStructure->Ek<PID_InitStructure->Ek_up)//误差死区
+		PID_InitStructure->Ek=0;
+	PID_InitStructure->Del_Ek=PID_InitStructure->Ek-PID_InitStructure->Ek_1;
+	
+	if(PID_InitStructure->Ek>PID_InitStructure->Ek_Sumlow && PID_InitStructure->Ek<PID_InitStructure->Ek_Sumup)PID_InitStructure->Sum_Ek+=PID_InitStructure->Ek;//积分分离
+	else PID_InitStructure->Sum_Ek=0;
+
+	PID_InitStructure->P_OUT=PID_InitStructure->Kp*PID_InitStructure->Ek;
+	PID_InitStructure->I_OUT=PID_InitStructure->Ki*PID_InitStructure->Sum_Ek;
+	PID_InitStructure->D_OUT=PID_InitStructure->Kd*PID_InitStructure->Del_Ek;
+	PID_InitStructure->OUT=PID_InitStructure->P_OUT+PID_InitStructure->I_OUT+PID_InitStructure->D_OUT;
+	
+	if(PID_InitStructure->I_OUT<PID_InitStructure->IOUT_low)//积分限幅
+		PID_InitStructure->I_OUT=PID_InitStructure->IOUT_low;
+	if(PID_InitStructure->I_OUT>PID_InitStructure->IOUT_up)
+		PID_InitStructure->I_OUT=PID_InitStructure->IOUT_up;
+	
+	if(PID_InitStructure->OUT<PID_InitStructure->OUT_low)//输出限幅
+		PID_InitStructure->OUT=PID_InitStructure->OUT_low;
+	if(PID_InitStructure->OUT>PID_InitStructure->OUT_up)
+		PID_InitStructure->OUT=PID_InitStructure->OUT_up;
+}

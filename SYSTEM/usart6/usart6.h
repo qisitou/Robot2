@@ -1,16 +1,16 @@
 #ifndef __USART6_H
 #define __USART6_H
-#include "stdio.h"	
+#include "stdio.h"
 #include "stm32f4xx_conf.h"
-#include "sys.h" 
+#include "sys.h"
 
-	
-#define EN_USART6_RX 			1		//Ê¹ÄÜ£¨1£©/½ûÖ¹£¨0£©´®¿Ú6½ÓÊÕ
 
-#define readOnly(x)	x->CR1 |= 4;	x->CR1 &= 0xFFFFFFF7;		//´®¿ÚxÅäÖÃÎªÖ»¶Á£¬CR1->RE=1, CR1->TE=0
-#define sendOnly(x)	x->CR1 |= 8;	x->CR1 &= 0xFFFFFFFB;		//´®¿ÚxÅäÖÃÎªÖ»Ğ´£¬CR1->RE=0, CR1->TE=1
+#define EN_USART6_RX 			1		//ä½¿èƒ½ï¼ˆ1ï¼‰/ç¦æ­¢ï¼ˆ0ï¼‰ä¸²å£6æ¥æ”¶
 
-//Èç¹ûÏë´®¿ÚÖĞ¶Ï½ÓÊÕ£¬Çë²»Òª×¢ÊÍÒÔÏÂºê¶¨Òå
+#define readOnly(x)	x->CR1 |= 4;	x->CR1 &= 0xFFFFFFF7;		//ä¸²å£xé…ç½®ä¸ºåªè¯»ï¼ŒCR1->RE=1, CR1->TE=0
+#define sendOnly(x)	x->CR1 |= 8;	x->CR1 &= 0xFFFFFFFB;		//ä¸²å£xé…ç½®ä¸ºåªå†™ï¼ŒCR1->RE=0, CR1->TE=1
+
+//å¦‚æœæƒ³ä¸²å£ä¸­æ–­æ¥æ”¶ï¼Œè¯·ä¸è¦æ³¨é‡Šä»¥ä¸‹å®å®šä¹‰
 
 void usart6_init(u32 bound);
 void uart6_WriteBuf(uint8_t *buf, uint8_t len);

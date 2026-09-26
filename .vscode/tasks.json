@@ -2,38 +2,45 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
-            "type": "shell",
-            "command": "${command:eide.project.build}",
-            "group": "build",
+            "label": "Keil: build",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\tools\\keil-uvsc\\build_keil.ps1",
+                "-Uv4",
+                "D:\\keil5\\UV4\\uVision.com",
+                "-Project",
+                "${workspaceFolder}\\MDK-ARM\\hao.uvprojx",
+                "-Log",
+                "${workspaceFolder}\\MDK-ARM\\OBJ\\vscode-build.log"
+            ],
+            "group": { "kind": "build", "isDefault": true },
             "problemMatcher": []
         },
         {
-            "label": "flash",
-            "type": "shell",
-            "command": "${command:eide.project.uploadToDevice}",
-            "group": "build",
+            "label": "DAPLink: flash (Keil UVSC)",
+            "type": "process",
+            "command": "py",
+            "args": [
+                "-3",
+                "${workspaceFolder}\\tools\\keil-uvsc\\flash_keil.py",
+                "${workspaceFolder}\\MDK-ARM\\hao.uvprojx",
+                "D:\\keil5\\UV4",
+                "hao",
+                "4329"
+            ],
+            "dependsOn": "Keil: build",
             "problemMatcher": []
         },
         {
-            "label": "build and flash",
-            "type": "shell",
-            "command": "${command:eide.project.buildAndFlash}",
-            "group": "build",
-            "problemMatcher": []
-        },
-        {
-            "label": "rebuild",
-            "type": "shell",
-            "command": "${command:eide.project.rebuild}",
-            "group": "build",
-            "problemMatcher": []
-        },
-        {
-            "label": "clean",
-            "type": "shell",
-            "command": "${command:eide.project.clean}",
-            "group": "build",
+            "label": "Keil: clean",
+            "type": "process",
+            "command": "D:\\keil5\\UV4\\uVision.com",
+            "args": ["-c", "${workspaceFolder}\\MDK-ARM\\hao.uvprojx"],
             "problemMatcher": []
         }
     ]

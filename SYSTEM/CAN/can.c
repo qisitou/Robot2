@@ -2,98 +2,98 @@
 #include "stdio.h"
 
 /**
-	* @brief   ³õÊ¼»¯CAN
-	* @param   ÎŞ
-	* @retval  ÎŞ
+	* @brief   åˆå§‹åŒ–CAN
+	* @param   æ— 
+	* @retval  æ— 
 **/
 
 void can_init(void)
 {
-	
-	GPIO_InitTypeDef 	   GPIO_InitStructure; 
+
+	GPIO_InitTypeDef 	   GPIO_InitStructure;
 	CAN_InitTypeDef        CAN_InitStructure;
-	CAN_FilterInitTypeDef  CAN_FilterInitStructure;			// ¹ıÂËÆ÷½á¹¹Ìå
+	CAN_FilterInitTypeDef  CAN_FilterInitStructure;			// è¿‡æ»¤å™¨ç»“æ„ä½“
 
 #if CAN_RX
-   	NVIC_InitTypeDef       NVIC_InitStructure;
+			NVIC_InitTypeDef       NVIC_InitStructure;
 #endif
 
-	// ÉèÖÃSTM32µÄÖ¡ID - À©Õ¹Ö¡¸ñÊ½ - ²»¹ıÂËÈÎºÎÊı¾İÖ¡
+	// è®¾ç½®STM32çš„å¸§ID - æ‰©å±•å¸§æ ¼å¼ - ä¸è¿‡æ»¤ä»»ä½•æ•°æ®å¸§
 	__IO uint8_t id_o, im_o; __IO uint16_t id_l, id_h, im_l, im_h;
 	id_o = (0x00);
-	id_h = (uint16_t)((uint16_t)id_o >> 5);				  // ¸ß3Î»
-	id_l = (uint16_t)((uint16_t)id_o << 11) | CAN_ID_EXT; // µÍ5Î»
+	id_h = (uint16_t)((uint16_t)id_o >> 5);				  // é«˜3ä½
+	id_l = (uint16_t)((uint16_t)id_o << 11) | CAN_ID_EXT; // ä½5ä½
 	im_o = (0x00);
 	im_h = (uint16_t)((uint16_t)im_o >> 5);
 	im_l = (uint16_t)((uint16_t)im_o << 11) | CAN_ID_EXT;
-    
-	//Ê¹ÄÜÏà¹ØÊ±ÖÓ
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);//Ê¹ÄÜPORTAÊ±ÖÓ	                   											 
-  	RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);//Ê¹ÄÜCAN1Ê±ÖÓ	
-	
-    //³õÊ¼»¯GPIO
+
+	//ä½¿èƒ½ç›¸å…³æ—¶é’Ÿ
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);//ä½¿èƒ½PORTAæ—¶é’Ÿ
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);//ä½¿èƒ½CAN1æ—¶é’Ÿ
+
+    //åˆå§‹åŒ–GPIO
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11| GPIO_Pin_12;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;//¸´ÓÃ¹¦ÄÜ
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//ÍÆÍìÊä³ö
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;//å¤ç”¨åŠŸèƒ½
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//æ¨æŒ½è¾“å‡º
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ÉÏÀ­
-    GPIO_Init(GPIOA, &GPIO_InitStructure);//³õÊ¼»¯PA11,PA12
-	
-	//Òı½Å¸´ÓÃÓ³ÉäÅäÖÃ
-	GPIO_PinAFConfig(GPIOA,GPIO_PinSource11,GPIO_AF_CAN1); //GPIOA11¸´ÓÃÎªCAN1
-	GPIO_PinAFConfig(GPIOA,GPIO_PinSource12,GPIO_AF_CAN1); //GPIOA12¸´ÓÃÎªCAN1
-	  
-  	//CANÅäÖÃµÄ²¨ÌØÂÊÊÇ 500 kbps
-   	CAN_InitStructure.CAN_TTCM=DISABLE;	//·ÇÊ±¼ä´¥·¢Í¨ĞÅÄ£Ê½   
-  	CAN_InitStructure.CAN_ABOM=DISABLE;	//Èí¼ş×Ô¶¯ÀëÏß¹ÜÀí	  
-  	CAN_InitStructure.CAN_AWUM=DISABLE;//Ë¯ÃßÄ£Ê½Í¨¹ıÈí¼ş»½ĞÑ(Çå³ıCAN->MCRµÄSLEEPÎ»)
-  	CAN_InitStructure.CAN_NART=ENABLE;	//Ê¹ÄÜ±¨ÎÄ×Ô¶¯´«ËÍ 
-  	CAN_InitStructure.CAN_RFLM=DISABLE;	//±¨ÎÄ²»Ëø¶¨,ĞÂµÄ¸²¸Ç¾ÉµÄ  
-  	CAN_InitStructure.CAN_TXFP=DISABLE;	//ÓÅÏÈ¼¶ÓÉ±¨ÎÄ±êÊ¶·û¾ö¶¨ 
-  	CAN_InitStructure.CAN_Mode= CAN_Mode_Normal;	 //Ä£Ê½ÉèÖÃ 
-  	CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;	//ÖØĞÂÍ¬²½ÌøÔ¾¿í¶È(Tsjw)Îªtsjw+1¸öÊ±¼äµ¥Î» CAN_SJW_1tq~CAN_SJW_4tq
-  	CAN_InitStructure.CAN_BS1=CAN_BS1_4tq; //Tbs1·¶Î§CAN_BS1_1tq ~CAN_BS1_16tq
-  	CAN_InitStructure.CAN_BS2=CAN_BS2_1tq;//Tbs2·¶Î§CAN_BS2_1tq ~	CAN_BS2_8tq
-  	CAN_InitStructure.CAN_Prescaler=14;  //·ÖÆµÏµÊı(Fdiv)Îªbrp+1	
-  	CAN_Init(CAN1, &CAN_InitStructure);   // ³õÊ¼»¯CAN1 
-	
-		
-	//ÅäÖÃ¹ıÂËÆ÷
- 	CAN_FilterInitStructure.CAN_FilterNumber=0;	  //¹ıÂËÆ÷0
-  	CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask; // ÑÚÂëÄ£Ê½
-  	CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit; //32Î» 
-  	CAN_FilterInitStructure.CAN_FilterIdHigh=id_h;	// ¹ıÂËÆ÷±êÊ¶·ûµÄ¸ß16Î»Öµ
-  	CAN_FilterInitStructure.CAN_FilterIdLow=id_l;	// ¹ıÂËÆ÷±êÊ¶·ûµÄµÍ16Î»Öµ
-  	CAN_FilterInitStructure.CAN_FilterMaskIdHigh=im_h;	// ¹ıÂËÆ÷ÆÁ±Î±êÊ¶·ûµÄ¸ß16Î»Öµ
-  	CAN_FilterInitStructure.CAN_FilterMaskIdLow=im_l;	// ¹ıÂËÆ÷ÆÁ±Î±êÊ¶·ûµÄµÍ16Î»Öµ
-   	CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_Filter_FIFO0;//¹ıÂËÆ÷0¹ØÁªµ½FIFO0
-  	CAN_FilterInitStructure.CAN_FilterActivation=ENABLE; //Ê¹ÄÜ¹ıÂËÆ÷
-  	CAN_FilterInit(&CAN_FilterInitStructure);//ÂË²¨Æ÷³õÊ¼»¯
-		
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ä¸Šæ‹‰
+    GPIO_Init(GPIOA, &GPIO_InitStructure);//åˆå§‹åŒ–PA11,PA12
+
+	//å¼•è„šå¤ç”¨æ˜ å°„é…ç½®
+	GPIO_PinAFConfig(GPIOA,GPIO_PinSource11,GPIO_AF_CAN1); //GPIOA11å¤ç”¨ä¸ºCAN1
+	GPIO_PinAFConfig(GPIOA,GPIO_PinSource12,GPIO_AF_CAN1); //GPIOA12å¤ç”¨ä¸ºCAN1
+
+		//CANé…ç½®çš„æ³¢ç‰¹ç‡æ˜¯ 500 kbps
+			CAN_InitStructure.CAN_TTCM=DISABLE;	//éæ—¶é—´è§¦å‘é€šä¿¡æ¨¡å¼
+		CAN_InitStructure.CAN_ABOM=DISABLE;	//è½¯ä»¶è‡ªåŠ¨ç¦»çº¿ç®¡ç†
+		CAN_InitStructure.CAN_AWUM=DISABLE;//ç¡çœ æ¨¡å¼é€šè¿‡è½¯ä»¶å”¤é†’(æ¸…é™¤CAN->MCRçš„SLEEPä½)
+		CAN_InitStructure.CAN_NART=ENABLE;	//ä½¿èƒ½æŠ¥æ–‡è‡ªåŠ¨ä¼ é€
+		CAN_InitStructure.CAN_RFLM=DISABLE;	//æŠ¥æ–‡ä¸é”å®š,æ–°çš„è¦†ç›–æ—§çš„
+		CAN_InitStructure.CAN_TXFP=DISABLE;	//ä¼˜å…ˆçº§ç”±æŠ¥æ–‡æ ‡è¯†ç¬¦å†³å®š
+		CAN_InitStructure.CAN_Mode= CAN_Mode_Normal;	 //æ¨¡å¼è®¾ç½®
+		CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;	//é‡æ–°åŒæ­¥è·³è·ƒå®½åº¦(Tsjw)ä¸ºtsjw+1ä¸ªæ—¶é—´å•ä½ CAN_SJW_1tq~CAN_SJW_4tq
+		CAN_InitStructure.CAN_BS1=CAN_BS1_4tq; //Tbs1èŒƒå›´CAN_BS1_1tq ~CAN_BS1_16tq
+		CAN_InitStructure.CAN_BS2=CAN_BS2_1tq;//Tbs2èŒƒå›´CAN_BS2_1tq ~	CAN_BS2_8tq
+		CAN_InitStructure.CAN_Prescaler=14;  //åˆ†é¢‘ç³»æ•°(Fdiv)ä¸ºbrp+1
+		CAN_Init(CAN1, &CAN_InitStructure);   // åˆå§‹åŒ–CAN1
+
+
+	//é…ç½®è¿‡æ»¤å™¨
+	CAN_FilterInitStructure.CAN_FilterNumber=0;	  //è¿‡æ»¤å™¨0
+		CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask; // æ©ç æ¨¡å¼
+		CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit; //32ä½
+		CAN_FilterInitStructure.CAN_FilterIdHigh=id_h;	// è¿‡æ»¤å™¨æ ‡è¯†ç¬¦çš„é«˜16ä½å€¼
+		CAN_FilterInitStructure.CAN_FilterIdLow=id_l;	// è¿‡æ»¤å™¨æ ‡è¯†ç¬¦çš„ä½16ä½å€¼
+		CAN_FilterInitStructure.CAN_FilterMaskIdHigh=im_h;	// è¿‡æ»¤å™¨å±è”½æ ‡è¯†ç¬¦çš„é«˜16ä½å€¼
+		CAN_FilterInitStructure.CAN_FilterMaskIdLow=im_l;	// è¿‡æ»¤å™¨å±è”½æ ‡è¯†ç¬¦çš„ä½16ä½å€¼
+			CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_Filter_FIFO0;//è¿‡æ»¤å™¨0å…³è”åˆ°FIFO0
+		CAN_FilterInitStructure.CAN_FilterActivation=ENABLE; //ä½¿èƒ½è¿‡æ»¤å™¨
+		CAN_FilterInit(&CAN_FilterInitStructure);//æ»¤æ³¢å™¨åˆå§‹åŒ–
+
 #if CAN_RX
-	CAN_ITConfig(CAN1,CAN_IT_FMP0,ENABLE);				//FIFO0ÏûÏ¢¹ÒºÅÖĞ¶ÏÔÊĞí.		    
-  
-  	NVIC_InitStructure.NVIC_IRQChannel = CAN1_RX0_IRQn;
-  	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;     // Ö÷ÓÅÏÈ¼¶Îª1
-  	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;            // ´ÎÓÅÏÈ¼¶Îª0
-  	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  	NVIC_Init(&NVIC_InitStructure);
+	CAN_ITConfig(CAN1,CAN_IT_FMP0,ENABLE);				//FIFO0æ¶ˆæ¯æŒ‚å·ä¸­æ–­å…è®¸.
+
+		NVIC_InitStructure.NVIC_IRQChannel = CAN1_RX0_IRQn;
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;     // ä¸»ä¼˜å…ˆçº§ä¸º1
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;            // æ¬¡ä¼˜å…ˆçº§ä¸º0
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+		NVIC_Init(&NVIC_InitStructure);
 #endif
 }
 
 __IO CAN_t can = {0};
 
 /**
-	* @brief   CAN1_RX0½ÓÊÕÖĞ¶Ï
-	* @param   ÎŞ
-	* @retval  ÎŞ
+	* @brief   CAN1_RX0æ¥æ”¶ä¸­æ–­
+	* @param   æ— 
+	* @retval  æ— 
 */
 #if CAN_RX
 uint8_t Can_Reach_Count = 0;
 uint8_t Motor_Num = 0;
 void CAN1_RX0_IRQHandler(void)
 {
-	// ½ÓÊÕÒ»°üÊı¾İ
+	// æ¥æ”¶ä¸€åŒ…æ•°æ®
 	CAN_Receive(CAN1, CAN_FIFO0, (CanRxMsg *)(&can.CAN_RxMsg));
 	can.rxFrameFlag = true;
 	if (can.CAN_RxMsg.DLC >= 3)
@@ -103,17 +103,17 @@ void CAN1_RX0_IRQHandler(void)
 		uint8_t sub  = can.CAN_RxMsg.Data[1];
 		uint8_t chk  = can.CAN_RxMsg.Data[2];
 
-		if ((cmd == 0xFD||cmd == 0xF6||cmd == 0xFE) && sub == 0x02 && chk == 0x6B)	//Î»ÖÃÄ£Ê½/ËÙ¶ÈÄ£Ê½/Á¢¼´Í£Ö¹
+		if ((cmd == 0xFD||cmd == 0xF6||cmd == 0xFE) && sub == 0x02 && chk == 0x6B)	//ä½ç½®æ¨¡å¼/é€Ÿåº¦æ¨¡å¼/ç«‹å³åœæ­¢
 		{
 			Motor_Num = addr;
 			//printf("Motor 0x%02X get.\n", addr);
 		}
-		else if (cmd == 0xFF && sub == 0x02 && chk == 0x6B)//¶à»úÍ¬²½
+		else if (cmd == 0xFF && sub == 0x02 && chk == 0x6B)//å¤šæœºåŒæ­¥
 		{
 			Motor_Num = 0;
-			//printf("¶à»úÍ¬²½.\n");
+			//printf("\182\224\187\250\205\172\178\189.\n");
 		}
-		else if (cmd == 0xFD && sub == 0x9F && chk == 0x6B)//Î»ÖÃÄ£Ê½µ½Î»
+		else if (cmd == 0xFD && sub == 0x9F && chk == 0x6B)//ä½ç½®æ¨¡å¼åˆ°ä½
 		{
 			Can_Reach_Count++;
 //			printf("Motor 0x%02X reach position.\n", addr);
@@ -125,51 +125,51 @@ void CAN1_RX0_IRQHandler(void)
 
 
 /**
-	* @brief   CAN·¢ËÍ¶à¸ö×Ö½Ú
-	* @param   ÎŞ
-	* @retval  ÎŞ
+	* @brief   CANå‘é€å¤šä¸ªå­—èŠ‚
+	* @param   æ— 
+	* @retval  æ— 
 	*/
 void can_SendCmd(__IO uint8_t *cmd, uint8_t len)
 {
 	__IO uint8_t i = 0, j = 0, k = 0, l = 0, packNum = 0;
 
-	// ³ıÈ¥IDµØÖ·ºÍ¹¦ÄÜÂëºóµÄÊı¾İ³¤¶È
+	// é™¤å»IDåœ°å€å’ŒåŠŸèƒ½ç åçš„æ•°æ®é•¿åº¦
 	j = len - 2;
 
-	// ·¢ËÍÊı¾İ
+	// å‘é€æ•°æ®
 	while(i < j)
 	{
-		// Êı¾İ¸öÊı
+		// æ•°æ®ä¸ªæ•°
 		k = j - i;
 
-		// Ìî³ä»º´æ
+		// å¡«å……ç¼“å­˜
 		can.CAN_TxMsg.StdId = 0x00;
 		can.CAN_TxMsg.ExtId = ((uint32_t)cmd[0] << 8) | (uint32_t)packNum;
 		can.CAN_TxMsg.Data[0] = cmd[1];
 		can.CAN_TxMsg.IDE = CAN_Id_Extended;
 		can.CAN_TxMsg.RTR = CAN_RTR_Data;
 
-		// Ğ¡ÓÚ8×Ö½ÚÃüÁî
+		// å°äº8å­—èŠ‚å‘½ä»¤
 		if(k < 8)
 		{
 			for(l=0; l < k; l++,i++) { can.CAN_TxMsg.Data[l + 1] = cmd[i + 2]; } can.CAN_TxMsg.DLC = k + 1;
 		}
-		// ´óÓÚ8×Ö½ÚÃüÁî£¬·Ö°ü·¢ËÍ£¬Ã¿°üÊı¾İ×î¶à·¢ËÍ8¸ö×Ö½Ú
+		// å¤§äº8å­—èŠ‚å‘½ä»¤ï¼Œåˆ†åŒ…å‘é€ï¼Œæ¯åŒ…æ•°æ®æœ€å¤šå‘é€8ä¸ªå­—èŠ‚
 		else
 		{
 			for(l=0; l < 7; l++,i++) { can.CAN_TxMsg.Data[l + 1] = cmd[i + 2]; } can.CAN_TxMsg.DLC = 8;
 		}
 
-		// ·¢ËÍÊı¾İ
+		// å‘é€æ•°æ®
 		//CAN_Transmit(CAN1, (CanTxMsg *)(&can.CAN_TxMsg));
 		uint8_t mailbox = CAN_Transmit(CAN1, (CanTxMsg *)(&can.CAN_TxMsg));
 		if (mailbox != 3)
 		{
-			// µÈ´ı·¢ËÍÍê³É
+			// ç­‰å¾…å‘é€å®Œæˆ
 			while ((CAN1->TSR & (CAN_TSR_RQCP0 << mailbox)) == 0);
 		}
-		
-		// ¼ÇÂ¼·¢ËÍµÄµÚ¼¸°üµÄÊı¾İ
+
+		// è®°å½•å‘é€çš„ç¬¬å‡ åŒ…çš„æ•°æ®
 		++packNum;
 	}
 }

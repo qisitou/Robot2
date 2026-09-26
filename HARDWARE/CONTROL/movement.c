@@ -1,9 +1,9 @@
-/*Ğ¡³µµÄÒ»Ğ©»ù±¾¶¯×÷*/
+/*å°è½¦çš„ä¸€äº›åŸºæœ¬åŠ¨ä½œ*/
 
 #include "movement.h"
 #include "delay.h"
 #include "sys.h"
-#include "control.h"	
+#include "control.h"
 #include <string.h>
 #include "delay.h"
 #include <stdarg.h>
@@ -13,25 +13,25 @@
 #include "headfile.h"
 
 
-float Target_Vx_Speed;  		//Ğ¡³µµÄÓÒÒÆÄ¿±êËÙ¶È
-float Target_Vy_Speed;  		//Ğ¡³µµÄÇ°½øÄ¿±êËÙ¶È
-float Target_W_Speed;  			//Ğ¡³µµÄĞı×ªÄ¿±ê½ÇËÙ¶È
-float Target_W_Bias; 
-float Position_W_Bias; 
+float Target_Vx_Speed;  		//å°è½¦çš„å³ç§»ç›®æ ‡é€Ÿåº¦
+float Target_Vy_Speed;  		//å°è½¦çš„å‰è¿›ç›®æ ‡é€Ÿåº¦
+float Target_W_Speed;  			//å°è½¦çš„æ—‹è½¬ç›®æ ‡è§’é€Ÿåº¦
+float Target_W_Bias;
+float Position_W_Bias;
 float Target_Angle;
-		
 
-float Target_Position_Vx;  		//Ğ¡³µµÄ×óÓÒÒÆÄ¿±êÎ»ÒÆ
-float Target_Position_Vy;  		//Ğ¡³µµÄÇ°½øÄ¿±êÎ»ÒÆ
-float Target_Position_W;  		//Ğ¡³µµÄĞı×ªÄ¿±ê½ÇÎ»ÒÆ
+
+float Target_Position_Vx;  		//å°è½¦çš„å·¦å³ç§»ç›®æ ‡ä½ç§»
+float Target_Position_Vy;  		//å°è½¦çš„å‰è¿›ç›®æ ‡ä½ç§»
+float Target_Position_W;  		//å°è½¦çš„æ—‹è½¬ç›®æ ‡è§’ä½ç§»
 
 extern float Target_gyroz;
 
-extern u8 Run_Mode;					
-extern int	Position_LF;    		  
-extern int	Position_RF;            
-extern int	Position_LB;            
-extern int	Position_RB;  
+extern u8 Run_Mode;
+extern int	Position_LF;
+extern int	Position_RF;
+extern int	Position_LB;
+extern int	Position_RB;
 
 
 uint32_t out_time = 0;
@@ -41,8 +41,8 @@ uint32_t out_time = 0;
 #define TURN_DIR_RIGHT        1
 #define TURN_SPEED_MAX_RPM    5000U
 
-/*³µ×Ó×ªÉÙÁË£¬¼Ó´ó²ÎÊı  ³µ×Ó×ª¶àÁË£¬¼õĞ¡²ÎÊı*/
-#define TURN_PULSE_SCALE_LEFT  0.97f	
+/*è½¦å­è½¬å°‘äº†ï¼ŒåŠ å¤§å‚æ•°  è½¦å­è½¬å¤šäº†ï¼Œå‡å°å‚æ•°*/
+#define TURN_PULSE_SCALE_LEFT  0.97f
 #define TURN_PULSE_SCALE_RIGHT 1.000f
 
 static uint16_t calc_turn_pulse_by_wheel_distance(float wheel_distance_m, char turn_dir)
@@ -61,7 +61,7 @@ static uint16_t calc_turn_pulse_by_wheel_distance(float wheel_distance_m, char t
 	}
 
 	pulse_f = fabsf(wheel_distance_m) * MOTOR_PULSE_PER_REV * scale / (PI * R_PARAMETER);
-	pulse_u32 = (uint32_t)(pulse_f + 0.5f);	//¼õÉÙÏµÍ³ĞÔ¡°ÉÙ¸øÂö³å¡±µÄÎó²î¡£
+	pulse_u32 = (uint32_t)(pulse_f + 0.5f);	//å‡å°‘ç³»ç»Ÿæ€§â€œå°‘ç»™è„‰å†²â€çš„è¯¯å·®ã€‚
 	if (pulse_u32 > 65535U)
 	{
 		pulse_u32 = 65535U;
@@ -82,7 +82,7 @@ static uint32_t calc_turn_wait_ms(uint16_t pulse, uint16_t speed_rpm)
 	denom = (uint32_t)speed_rpm * (uint32_t)MOTOR_PULSE_PER_REV;
 	numer = (uint64_t)pulse * 60000ULL;
 
-	/* ÏòÉÏÈ¡Õû£¬È·±£¸Õµ½Ä¿±ê½Ç¶È */
+	/* å‘ä¸Šå–æ•´ï¼Œç¡®ä¿åˆšåˆ°ç›®æ ‡è§’åº¦ */
 	return (uint32_t)((numer + (uint64_t)denom - 1ULL) / (uint64_t)denom);
 }
 
@@ -122,7 +122,7 @@ void Turn_car_angle(uint16_t speed_rpm,int16_t angle_deg)
 	yaw_rad = ((float)angle_deg) * PI / 180.0f;
 	Kinematic_Analysis_Position(0.0f, 0.0f, yaw_rad);
 
-	/* µç»úÓ³Éä£º1->LB, 2->RB, 3->LF, 4->RF */
+	/* ç”µæœºæ˜ å°„ï¼š1->LB, 2->RB, 3->LF, 4->RF */
 	dir_1 = (Target_Position_LB >= 0.0f) ? CW : CCW;
 	dir_2 = (Target_Position_RB >= 0.0f) ? CCW : CW;
 	dir_3 = (Target_Position_LF >= 0.0f) ? CW : CCW;
@@ -149,19 +149,19 @@ void Turn_car_angle(uint16_t speed_rpm,int16_t angle_deg)
 }
 
 
-/* Ö±½ÓÊ¹ÄÜµç»úÍ£³µ */
+/* ç›´æ¥ä½¿èƒ½ç”µæœºåœè½¦ */
 void Stop_now(void)
-{	//²ÎÊı£º£¨µç»úµØÖ·£¬¿ªÆôÍ¬²½£©
+{	//å‚æ•°ï¼šï¼ˆç”µæœºåœ°å€ï¼Œå¼€å¯åŒæ­¥ï¼‰
 	Emm_V5_Stop_Now(1,1);delay_ms(10);
 	Emm_V5_Stop_Now(2,1);delay_ms(10);
 	Emm_V5_Stop_Now(3,1);delay_ms(10);
 	Emm_V5_Stop_Now(4,1);delay_ms(10);
-	Emm_V5_Synchronous_motion(0); 								 // ¹ã²¥µØÖ·0´¥·¢
+	Emm_V5_Synchronous_motion(0); 								 // å¹¿æ’­åœ°å€0è§¦å‘
 	delay_ms(10);
 }
 
 
-/* Í£³µ */
+/* åœè½¦ */
 void Stop(void)
 {
 	out_time = 0;
@@ -176,7 +176,7 @@ void Stop(void)
 }
 
 
-//ÔË¶¯Ä£Ê½1
+//è¿åŠ¨æ¨¡å¼1
 void Move_Mode1(float X,float Y,float W,float time)
 {
 	Run_Mode = 1;
@@ -187,7 +187,7 @@ void Move_Mode1(float X,float Y,float W,float time)
 	delay_ms(time*1000);
 }
 
-//ÔË¶¯Ä£Ê½2
+//è¿åŠ¨æ¨¡å¼2
 void Move_Mode2(float X,float Y,float W,float Angle,float time)
 {
 	Run_Mode=2;

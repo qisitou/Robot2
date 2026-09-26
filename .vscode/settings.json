@@ -1,0 +1,8 @@
+{
+    "files.encoding": "utf8",
+    "robot2.keilUv4": "D:\\keil5\\UV4\\uVision.com",
+    "robot2.openocdPath": "D:\\tools\\openocd-xpack\\xpack-openocd-0.12.0-7\\bin\\openocd.exe",
+    "robot2.openocdScripts": "D:\\tools\\openocd-xpack\\xpack-openocd-0.12.0-7\\openocd\\scripts",
+    "robot2.gdbPath": "C:\\Program Files (x86)\\Arm GNU Toolchain arm-none-eabi\\14.2 rel1\\bin\\arm-none-eabi-gdb.exe",
+    "robot2.svdFile": "D:\\keil5\\ARM\\PACK\\Keil\\STM32F4xx_DFP\\2.17.0\\CMSIS\\SVD\\STM32F407.svd"
+}

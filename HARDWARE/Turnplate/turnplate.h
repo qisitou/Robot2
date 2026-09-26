@@ -9,14 +9,28 @@
 
 struct Hole
 {
-    char ball;    //0 无球，r 红球，b 篮球, w 未识别    11 第一行倒跺，22 第二行倒跺，33 第三行倒跺
-    u8 ic;        //0 未识别
+    u8 ball;    //0rb, w 未识    1鏄湭璇嗗埆,0鏄瘑鍒繃
+    u8 ic;        //0 未识
     u16 pos;
 };
 
-
+extern uint8_t Ball_falling(void);
 
 extern u8 shake_flag;
+
+/* 妫�娴嬬姸鎬佹満鐩稿叧鍙橀噺 */
+extern u8 detect_allow;
+extern u8 detect_stage;
+extern u8 detect_flag;
+extern u8 detect_cpl;
+extern u8 continue_flag;
+
+extern int8_t turnplate_dir;
+
+extern char target_color;
+extern char anti_color;
+
+extern u16 timeout_S;
 
 extern u16 wait_time;
 extern int idx_bias;
@@ -32,6 +46,8 @@ void Turnplate_Move(int8_t idx);
 void turnplate_blank(void);
 void turnplate_daoduo(u8 row);
 void turnplate_log(void);
-
+// void turnplate_detect(void);
+void turnplate_detect_test(void);
+void shake(void);
 
 #endif 
