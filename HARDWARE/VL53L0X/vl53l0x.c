@@ -57,7 +57,7 @@ void VL53L0X_All_Init()
 
     while(vl53l0x_init(&vl53l0x_dev1,1))//vl53l0x初始化
     {
-        printf("id:1,%s\r\n","vl53l0x\179\245\202\188\187\175\202\167\176\220");
+        // printf("id:1,%s\r\n","vl53l0x\179\245\202\188\187\175\202\167\176\220");
         break;
     }
     vl53l0x_set_mode(&vl53l0x_dev1,HIGH_SPEED);//设置测量模式
@@ -70,7 +70,7 @@ void VL53L0X_All_Init()
 
     while(vl53l0x_init(&vl53l0x_dev3,3))//vl53l0x初始化
     {
-        printf("id:3 init failed\r\n");
+        // printf("id:3 init failed\r\n");
         break;
     }
     vl53l0x_set_mode(&vl53l0x_dev3,HIGH_SPEED);//设置测量模式

@@ -11,6 +11,12 @@ int openmv_rx_stair_dis;
 
 int openmv_rx_stake_dis;
 
+int layer[3];
+
+int openmv_warehouse_block_1,
+    openmv_warehouse_block_2,
+    openmv_warehouse_block_3;
+
 char openmv_sendbuf[20];
 char openmv_rxbuf[20];
 

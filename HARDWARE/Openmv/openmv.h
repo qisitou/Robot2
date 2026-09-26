@@ -22,6 +22,8 @@ extern int openmv_rx_stair_dis;
 
 extern int openmv_rx_stake_dis;
 
+extern int layer[3];
+extern int openmv_warehouse_block_1,openmv_warehouse_block_2,openmv_warehouse_block_3;
 
 extern char openmv_sendbuf[20];
 extern char openmv_rxbuf[20];

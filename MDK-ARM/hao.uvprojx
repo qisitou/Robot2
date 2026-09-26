@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\HADRWARE;..\FWLIB\inc;..\FWLIB\src;..\USER;..\HARDWARE\LED;..\SYSTEM\usart1;..\SYSTEM\usart2;..\SYSTEM\usart3;..\SYSTEM\uart4;..\SYSTEM\uart5;..\SYSTEM\usart6;..\HARDWARE\CX522;..\HARDWARE\DMA;..\HARDWARE\XM1603;..\HARDWARE\BEEP;..\SYSTEM\CAN;..\HARDWARE\IM948;..\HARDWARE\CONTROL;..\HARDWARE\Emm_V5;..\SYSTEM\TIMER;..\HARDWARE\VL53L0X;..\HARDWARE\WS2812;..\HARDWARE\KEY;..\HARDWARE\DelayTask;..\HARDWARE\PwmServo;..\HARDWARE\LobotDigitalServoController;..\HARDWARE\Gray;..\HARDWARE\TASK;..\HARDWARE\PID;..\HARDWARE\StepMotor;..\HARDWARE\Infrared;..\HARDWARE\Turnplate;..\HARDWARE\Filter;..\HARDWARE\Openmv</IncludePath>
+              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\HADRWARE;..\FWLIB\inc;..\FWLIB\src;..\USER;..\HARDWARE\LED;..\SYSTEM\usart1;..\SYSTEM\usart2;..\SYSTEM\usart3;..\SYSTEM\uart4;..\SYSTEM\uart5;..\SYSTEM\usart6;..\HARDWARE\CX522;..\HARDWARE\DMA;..\HARDWARE\BEEP;..\SYSTEM\CAN;..\HARDWARE\IM948;..\HARDWARE\CONTROL;..\HARDWARE\Emm_V5;..\SYSTEM\TIMER;..\HARDWARE\VL53L0X;..\HARDWARE\WS2812;..\HARDWARE\KEY;..\HARDWARE\DelayTask;..\HARDWARE\PwmServo;..\HARDWARE\LobotDigitalServoController;..\HARDWARE\Gray;..\HARDWARE\TASK;..\HARDWARE\PID;..\HARDWARE\StepMotor;..\HARDWARE\Infrared;..\HARDWARE\Turnplate;..\HARDWARE\Filter;..\HARDWARE\Openmv;..\HARDWARE\K230</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -429,11 +429,6 @@
               <FileName>cx522.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\CX522\cx522.c</FilePath>
-            </File>
-            <File>
-              <FileName>XM1603.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\XM1603\XM1603.c</FilePath>
             </File>
             <File>
               <FileName>beep.c</FileName>
@@ -629,6 +624,16 @@
               <FileName>openmv.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\HARDWARE\Openmv\openmv.h</FilePath>
+            </File>
+            <File>
+              <FileName>k230.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\K230\k230.c</FilePath>
+            </File>
+            <File>
+              <FileName>k230.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\HARDWARE\K230\k230.h</FilePath>
             </File>
           </Files>
         </Group>

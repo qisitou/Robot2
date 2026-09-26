@@ -62,7 +62,7 @@ void Kinematic_Analysis_Position(float Vx,float Vy,float Vz)
 }
 
 
-static float Position_PID_Yaw (float Angle,float Target)
+float Position_PID_Yaw (float Angle,float Target)
 {
 	static float Bias,Pwm,Integral_bias,Last_Bias;
 	Bias = Angle-Target;

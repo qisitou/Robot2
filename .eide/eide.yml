@@ -156,7 +156,7 @@ targets:
             c99-mode: true
             gnu-extensions: true
             one-elf-section-per-function: true
-            optimization: level-1
+            optimization: level-0
             warnings: all-warnings
           global:
             output-debug-info: enable

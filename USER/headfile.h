@@ -11,6 +11,7 @@
 #include "sys.h"
 #include "led.h"
 #include "delay.h"
+#include "usart1.h"
 #include "usart2.h"
 #include "usart3.h"
 #include "uart4.h"
@@ -18,7 +19,6 @@
 #include "usart6.h"
 #include "dma.h"
 #include "cx522.h"
-#include "XM1603.h"
 #include "can.h"
 #include "beep.h"
 #include "timer.h"
@@ -44,6 +44,7 @@
 #include "turnplate.h"
 #include "filter.h"
 #include "openmv.h"
+#include "k230.h"
 
 extern int a;
 

@@ -4,27 +4,31 @@
 
 //初始化IO 串口6
 //bound:波特率
+//本串口原用于 XM1603 扫码模块(已移除), 现改为 K230 视觉模块通信口(替代原 UART5)
+//接线: STM32 PG14 (USART6_TX) -> K230 RX
+//      STM32 PG9  (USART6_RX) <- K230 TX
+//      STM32 GND              <-> K230 GND
 void usart6_init(u32 bound){
    //GPIO端口设置
   GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG,ENABLE); //使能GPIOC时钟
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6,ENABLE);//使能USART6时钟
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG,ENABLE);   //使能GPIOG时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6,ENABLE);  //使能USART6时钟(USART6挂APB2)
 
-	//串口3对应引脚复用映射
-	GPIO_PinAFConfig(GPIOG,GPIO_PinSource9,GPIO_AF_USART6); //GPIOC6复用为USART6
-	GPIO_PinAFConfig(GPIOG,GPIO_PinSource14,GPIO_AF_USART6); //GPIOC6复用为USART6
+	//串口6对应引脚复用映射
+	GPIO_PinAFConfig(GPIOG,GPIO_PinSource9,GPIO_AF_USART6);  //PG9 复用为USART6_RX
+	GPIO_PinAFConfig(GPIOG,GPIO_PinSource14,GPIO_AF_USART6); //PG14复用为USART6_TX
 
 
 	//USART6端口配置
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_14; //GPIOC6与GPIOC7
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_14; //PG9(TX)与PG14(RX)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;//复用功能
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	//速度50MHz
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD; //推挽复用输出
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //推挽复用输出
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //上拉
-	GPIO_Init(GPIOG,&GPIO_InitStructure); //初始化PC6，PC7
+	GPIO_Init(GPIOG,&GPIO_InitStructure); //初始化PG9，PG14
 
    //USART6 初始化设置
 	USART_InitStructure.USART_BaudRate = bound;//波特率设置
@@ -43,10 +47,10 @@ void usart6_init(u32 bound){
 #if EN_USART6_RX
 	USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);//开启相关中断
 
-	//Usart3 NVIC 配置
+	//USART6 NVIC 配置(与原UART5保持一致: 抢占1/子2)
     NVIC_InitStructure.NVIC_IRQChannel = USART6_IRQn;//串口6中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2;//抢占优先级3
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority =3;		//子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=1;//抢占优先级1
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority =2;		//子优先级2
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化NVIC寄存器、
 

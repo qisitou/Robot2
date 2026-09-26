@@ -54,7 +54,7 @@ void Yaw_judge_zero(void);
 // ===============================调试信息开关====================================
     //#define __Debug  // 使用调试口输出调试信息,不使用调试信息屏蔽本句即可
     #ifdef __Debug
-        #define Dbp(fmt, args...)  printf(fmt, ##args) // 若需要使用调试信息, 用户对接Dbp函数名即可
+        #define Dbp(fmt, args...)  ((void)0)
         extern void Dbp_U8_buf(char *sBeginInfo, char *sEndInfo, char *sFormat, const U8 *Buf, U32 Len);
     #else
         #define Dbp(fmt, args...)

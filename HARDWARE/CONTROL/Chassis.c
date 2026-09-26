@@ -93,21 +93,22 @@ void Chassis_FixSpeed(float vx,float vy,float Angle,float K)
  *返回类型:无
  *备注:用于移动结束后的稳定Yaw姿态
  */
-void Chassis_GuiWei(float Start_Angle)
+void Chassis_GuiWei(float Start_Angle , uint16_t time)
 {
-	#define GuiWeiTime	50//归位时间,理论上归位时间为2ms*GuiWeiTime
-	
-	float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;//保存YawPID的参数
-	
-	PID_PositionSetParameter(&Chassis_AnglePID,5,0,3);//调硬PID
-	for(int i=0;i<GuiWeiTime;i++)
-	{
+    float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
+    float SaveOutLow = Chassis_AnglePID.OUT_low, SaveOutUp = Chassis_AnglePID.OUT_up;
 
-		Chassis_SetSpeed(0,0,Yaw_Angle,Start_Angle);
-		delay_ms(2);
-	}
-	PID_PositionSetParameter(&Chassis_AnglePID,SaveKp,SaveKi,SaveKd);//恢复PID
+    PID_PositionSetParameter(&Chassis_AnglePID,60,0,3);
+    PID_PositionSetOUTRange(&Chassis_AnglePID, -350, 350);   // 临时放开限幅,归位更猛
+    for(int i=0;i<time;i++)
+    {
+        Chassis_SetSpeed(0,0,Yaw_Angle,Start_Angle);
+        delay_ms(2);
+    }
+    PID_PositionSetOUTRange(&Chassis_AnglePID, SaveOutLow, SaveOutUp);   // 恢复限幅
+    PID_PositionSetParameter(&Chassis_AnglePID,SaveKp,SaveKi,SaveKd);    // 恢复PID
 }
+
 
 /*
  *函数简介:底盘单次移动

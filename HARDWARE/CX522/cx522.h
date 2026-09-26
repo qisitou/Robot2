@@ -14,6 +14,6 @@ extern u8 cx522_rxbuf[50];
 
 void cx522_Init(void);
 void cx522_ProcessData(void);
+void cx522_poll(void);
 
 #endif 
-

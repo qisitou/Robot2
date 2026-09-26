@@ -32,7 +32,6 @@ void TIM3_PWM_Init(u32 arr,u32 psc)
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1; //选择定时器模式:TIM脉冲宽度调制模式2
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //比较输出使能
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High; //输出极性:TIM输出比较极性低
-    // TIM_OCInitStructure.TIM_Pulse = 2420;
 
 
     TIM_OC1Init(TIM3,&TIM_OCInitStructure);
@@ -53,6 +52,5 @@ void PwmServo_Init(u32 arr,u32 psc)
     TIM3_PWM_Init(arr,psc);
 
     Turnplate_SetPos(HoleArr[0].pos);
-    delay_ms(1000);
 }
 

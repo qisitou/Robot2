@@ -6,6 +6,7 @@
 
 
 #define EN_USART6_RX 			1		//使能（1）/禁止（0）串口6接收
+//本串口现用于 K230 视觉模块通信(替代原 UART5), 原 XM1603 扫码模块已弃用
 
 #define readOnly(x)	x->CR1 |= 4;	x->CR1 &= 0xFFFFFFF7;		//串口x配置为只读，CR1->RE=1, CR1->TE=0
 #define sendOnly(x)	x->CR1 |= 8;	x->CR1 &= 0xFFFFFFFB;		//串口x配置为只写，CR1->RE=0, CR1->TE=1

@@ -39,93 +39,93 @@ VL53L0X_Error vl53l0x_adjust(VL53L0X_Dev_t *dev)
 	//SPADS校准----------------------------
 	spads:
 	delay_ms(10);
-	printf("The SPADS Calibration Start...\r\n");
+	// printf("The SPADS Calibration Start...\r\n");
 	Status = VL53L0X_PerformRefSpadManagement(dev,&refSpadCount,&isApertureSpads);//执行参考Spad管理
 	if(Status == VL53L0X_ERROR_NONE)
 	{
-	    printf("refSpadCount = %d\r\n",refSpadCount);
+	    // printf("refSpadCount = %d\r\n",refSpadCount);
 	    Vl53l0x_adjust.refSpadCount = refSpadCount;
-	    printf("isApertureSpads = %d\r\n",isApertureSpads);	
+	    // printf("isApertureSpads = %d\r\n",isApertureSpads);
 	    Vl53l0x_adjust.isApertureSpads = isApertureSpads;
-        printf("The SPADS Calibration Finish...\r\n\r\n");		
+        // printf("The SPADS Calibration Finish...\r\n\r\n");
 	    i=0;
 	}
 	else
 	{
 	    i++;
 	    if(i==adjust_num) return Status;
-	    printf("SPADS Calibration Error,Restart this step\r\n");
+	    // printf("SPADS Calibration Error,Restart this step\r\n");
 	    goto spads;
 	}
 	//设备参考校准---------------------------------------------------
 	ref:
 	delay_ms(10);
-	printf("The Ref Calibration Start...\r\n");
+	// printf("The Ref Calibration Start...\r\n");
 	Status = VL53L0X_PerformRefCalibration(dev,&VhvSettings,&PhaseCal);//Ref参考校准
 	if(Status == VL53L0X_ERROR_NONE)
 	{
-		printf("VhvSettings = %d\r\n",VhvSettings);
+		// printf("VhvSettings = %d\r\n",VhvSettings);
 		Vl53l0x_adjust.VhvSettings = VhvSettings;
-		printf("PhaseCal = %d\r\n",PhaseCal);
+		// printf("PhaseCal = %d\r\n",PhaseCal);
 		Vl53l0x_adjust.PhaseCal = PhaseCal;
-		printf("The Ref Calibration Finish...\r\n\r\n");
+		// printf("The Ref Calibration Finish...\r\n\r\n");
 		i=0;
 	}
 	else
 	{
 		i++;
 		if(i==adjust_num) return Status;
-		printf("Ref Calibration Error,Restart this step\r\n");
+		// printf("Ref Calibration Error,Restart this step\r\n");
 		goto ref;
 	}
 	//偏移校准------------------------------------------------
 	offset:
 	delay_ms(10);
-	printf("Offset Calibration:need a white target,in black space,and the distance keep 100mm!\r\n");
-	printf("The Offset Calibration Start...\r\n");
+	// printf("Offset Calibration:need a white target,in black space,and the distance keep 100mm!\r\n");
+	// printf("The Offset Calibration Start...\r\n");
 	
 	Status = VL53L0X_PerformOffsetCalibration(dev,CalDistanceMilliMeter,&OffsetMicroMeter);//偏移校准
 	if(Status == VL53L0X_ERROR_NONE)
 	{
-		printf("CalDistanceMilliMeter = %d mm\r\n",CalDistanceMilliMeter);
+		// printf("CalDistanceMilliMeter = %d mm\r\n",CalDistanceMilliMeter);
 		Vl53l0x_adjust.CalDistanceMilliMeter = CalDistanceMilliMeter;
-		printf("OffsetMicroMeter = %d mm\r\n",OffsetMicroMeter);	
+		// printf("OffsetMicroMeter = %d mm\r\n",OffsetMicroMeter);
 		Vl53l0x_adjust.OffsetMicroMeter = OffsetMicroMeter;
-		printf("The Offset Calibration Finish...\r\n\r\n");
+		// printf("The Offset Calibration Finish...\r\n\r\n");
 		i=0;
 	}
 	else
 	{
 		i++;
 		if(i==adjust_num) return Status;
-		printf("Offset Calibration Error,Restart this step\r\n");
+		// printf("Offset Calibration Error,Restart this step\r\n");
 		goto offset;
 	}
 	//串扰校准-----------------------------------------------------
 	xtalk:
 	delay_ms(20);
-	printf("Cross Talk Calibration:need a grey target\r\n");
-	printf("The Cross Talk Calibration Start...\r\n");	
+	// printf("Cross Talk Calibration:need a grey target\r\n");
+	// printf("The Cross Talk Calibration Start...\r\n");
 	Status = VL53L0X_PerformXTalkCalibration(dev,XTalkCalDistance,&XTalkCompensationRateMegaCps);//串扰校准
 	if(Status == VL53L0X_ERROR_NONE)
 	{
-		printf("XTalkCalDistance = %d mm\r\n",XTalkCalDistance);
+		// printf("XTalkCalDistance = %d mm\r\n",XTalkCalDistance);
 		Vl53l0x_adjust.XTalkCalDistance = XTalkCalDistance;
-		printf("XTalkCompensationRateMegaCps = %d\r\n",XTalkCompensationRateMegaCps);	
+		// printf("XTalkCompensationRateMegaCps = %d\r\n",XTalkCompensationRateMegaCps);
 		Vl53l0x_adjust.XTalkCompensationRateMegaCps = XTalkCompensationRateMegaCps;
-		printf("The Cross Talk Calibration Finish...\r\n\r\n");
+		// printf("The Cross Talk Calibration Finish...\r\n\r\n");
 		i=0;
 	}
 	else
 	{
 		i++;
 		if(i==adjust_num) return Status;
-		printf("Cross Talk Calibration Error,Restart this step\r\n");
+		// printf("Cross Talk Calibration Error,Restart this step\r\n");
 		goto xtalk;
 	}
 //	LED1=1;
-	printf("All the Calibration has Finished!\r\n");
-	printf("Calibration is successful!!\r\n");
+	// printf("All the Calibration has Finished!\r\n");
+	// printf("Calibration is successful!!\r\n");
 
 	Vl53l0x_adjust.adjustok = 0xAA;//校准成功
 	//AT24CXX_Write(0,(u8*)&Vl53l0x_adjust,sizeof(_vl53l0x_adjust));//将校准数据保存到24c02

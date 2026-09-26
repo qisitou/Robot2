@@ -40,6 +40,8 @@ extern struct Hole HoleArr[10];
 extern int8_t Hole_Idx;
 extern int8_t Hole_Now_Idx;
 
+extern int8_t hole ;
+
 void Turnplate_SetPos(u16 pos);
 void Turnplate_Move(int8_t idx);
 

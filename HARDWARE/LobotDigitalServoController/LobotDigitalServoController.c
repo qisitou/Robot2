@@ -25,6 +25,8 @@ uint8_t LobotRxIdx;
 uint8_t LobotRxDataLen;
 uint16_t batteryVolt;
 
+uint16_t arm_overtime=0;   //自己加的，机械臂动作超时计数
+
 u16 last_pos = 2450;
 
 u16 action_timeout_S = 0;
@@ -299,7 +301,7 @@ void USART3_IRQHandler(void)                	//串口3中断服务程序
                 LobotRxDataLen = 0;
             }
         }
-        else if(2 == LobotRxIdx)
+        else // idx >= 2: 继续接收长度字节及其后的数据，拼完整帧
         {
             LobotRxBuf[LobotRxIdx] = Res;
             LobotRxIdx++;

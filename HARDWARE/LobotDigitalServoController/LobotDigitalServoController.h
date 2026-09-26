@@ -23,6 +23,8 @@ extern u16 action_timeout_S;
 extern uint8_t LobotTxBuf[128];
 extern uint8_t LobotRxBuf[16];
 extern uint16_t batteryVolt;
+
+extern uint16_t arm_overtime;   //自己加的，机械臂动作超时计数
 void receiveHandle(void);
 
 typedef struct _lobot_servo_ {  //舵机ID,舵机目标位置
