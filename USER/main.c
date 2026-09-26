@@ -10,57 +10,195 @@
 //测试openmv发回数据控制底盘	
 static void Print_Stairs_Info_Task(void)
 {
-	// printf("%d",vl53l0x_data.RangeMilliMeter);
+	printf("%d     ",vl53l0x_data.RangeMilliMeter);
 	// printf{""}
 }
 
 
+
+// uint8_t Hole_Idx_Falling(int8_t Hole_Idx_Falling)
+// {
+// 	Hole_Idx_Falling=(Hole_Idx+3)%10;
+//     if(Hole_Idx_Falling < 0) Hole_Idx_Falling += 10;
+// 	return Hole_Idx_Falling;
+// }
 
 
 int main(void)
 {
 	/*====================初始化====================*/
 	LTCK_Init();   
-	// DelayTask_Add(1000000, 1000, (void (*)(void))Print_Stairs_Info_Task, NULL); 
+	// DelayTask_Add(1000000, 1000, (void (*)(void))Print_Stairs_Info_Task, NULL);  
 	/*==f==================选择红蓝方====================*/
- 	// Choose_Color();	
-
-	// Chassis_FixSpeed(0,40,180,300);
-		// HoleArr[3].ball=0;
-		// HoleArr[1].ball=0;
-		// HoleArr[2].ball=0;
-		// HoleArr[4].ball=0;
-		// HoleArr[5].ball=0;
-		// HoleArr[6].ball=0;
-		// HoleArr[7].ball=0;
-		// HoleArr[8].ball=0;
-		// HoleArr[9].ball=0;				
-		// HoleArr[3].ic=0x11;
-		// HoleArr[1].ic=0x21;
-		// HoleArr[2].ic=0x31;		
-		// HoleArr[4].ic=0x12;
-		// HoleArr[5].ic=0x22;
-		// HoleArr[6].ic=0x32;		
-		// HoleArr[7].ic=0x13;
-		// HoleArr[8].ic=0x23;
-		// HoleArr[9].ic=0x33;		
-		// detect_allow=1;					
+ 	Choose_Color();					
  	/*====================前往大转盘====================*/
- 	// Go_To_Turntable();
+ 	Go_To_Turntable();
 	/*====================前往楼梯====================*/
- 	// Go_To_Stairs();
+ 	Go_To_Stairs();
 	/*====================前往小圆盘====================*/
   	// Go_To_Small_Turntable();
 	/*====================前往仓库====================*/
   	// Go_To_Warehouse();
  	/*====================前往====================*/
  	// Go_To_Home();
+
+	/*====================测试读卡器====================*/
+			// HoleArr[1].ball=0;
+			// HoleArr[2].ball=0;
+			// HoleArr[3].ball=0;
+			// HoleArr[4].ball=0;
+			// HoleArr[5].ball=0;
+			// HoleArr[6].ball=0;
+			// HoleArr[7].ball=0;
+			// HoleArr[8].ball=0;
+			// HoleArr[9].ball=0;				
+			// HoleArr[3].ic=0x11;
+			// HoleArr[1].ic=0x21;
+			// HoleArr[2].ic=0x31;		
+			// HoleArr[4].ic=0x12;
+			// HoleArr[5].ic=0x22;
+			// HoleArr[6].ic=0x32;		
+			// HoleArr[7].ic=0x13;
+			// HoleArr[8].ic=0x23;
+			// HoleArr[9].ic=0x33;		
+			// detect_allow=1;	
+
+
+	int8_t x=-1;
+
+
+	uint8_t test=0;
 	while (1)
 	{
+		
+		//测试激光测距
+		
+		// vl53l0x_start_single_test(&vl53l0x_dev1,&vl53l0x_data);
+		// printf("dev1:%5dmm\r\n", vl53l0x_data.RangeMilliMeter);
+		// delay_ms(1000);
 
-        // vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
+
+		// if(1 == openmv_rx_cpl)
+		// {
+		// 	printf("stop1");
+		// 	openmv_rx_command = 0;
+		// 	openmv_rx_cpl=0;
+		// 	sscanf(openmv_rxbuf,"{%c}",&openmv_rx_command);
+		// 	printf("openmv_rx_comm:%c",openmv_rx_command);
+
+		// }
+
+
+		/*====================转盘读卡器测试====================*/
+		// while (test==0)
+		// {
+		// 	if(turnplate_flag==1)
+		// 	{
+		// 		if (Ball_falling() == 0)
+		// 		{
+
+		// 			HoleArr[Hole_Idx_Falling(Hole_Idx)].ball = 0;
+		// 			Hole_Idx++;
+		// 			ball_num++;
+		// 			Turnplate_Move(Hole_Idx);
+		// 			delay_ms(wait_time+300);
+		// 			if(5 == ball_num)
+		// 			{
+		// 				// for(int i=0;i<10;i++)
+		// 				// {
+		// 				// 	printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+		// 				// }
+		// 				detect_allow=1;	
+		// 				printf("ending1");
+		// 				test=1;
+		// 			}
+		// 			turnplate_flag=0;
+		// 			DelayTask_Add(1,400,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
+		// 		}
+		// 	}
+				
+		// }
+		// while(1);
+
+		// test=0;
+		// while (detect_allow==1);
+		// delay_ms(100);
+		// Hole_Idx=5;
+		// Turnplate_Move(Hole_Idx);
+		// delay_ms(wait_time+200);
+
+		// // delay_ms(2000);
+		// // detect_allow=0;
+		// // detect_flag=1;
+
+		// // Hole_Idx=5;
+		// // Turnplate_Move(Hole_Idx);
+		// // delay_ms(wait_time+200);
+ 		// while (test==0)
+		// {
+		// 	if(turnplate_flag==1)
+		// 	{
+		// 		if (Ball_falling() == 0)
+		// 		{
+
+		// 			HoleArr[Hole_Idx_Falling(Hole_Idx)].ball = 0;
+		// 			Hole_Idx++;
+		// 			ball_num++;
+		// 			Turnplate_Move(Hole_Idx);
+		// 			if(9 == ball_num)
+		// 			{
+		// 				// for(int i=0;i<10;i++)
+		// 				// {
+		// 				// 	printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+		// 				// }
+
+		// 				printf("ending2");
+		// 				detect_allow=1;
+		// 				test=1;	
+		// 			}
+		// 			turnplate_flag=0;
+		// 			DelayTask_Add(1,500,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
+		// 		}
+		// 	}
+				
+		// }
+		// while (detect_allow==1);
+		// printf("ending3");
+		// while(1);
+		/*====================测试转盘位置====================*/
+		// if (Key3_value) // 开始比赛，指示灯变绿
+        // {
+		// 	x++;			
+        //     Turnplate_Move(x);
+		// 	rgb_SetColor(RGB_4, GREEN);
+		// 	delay_ms(wait_time);
+		// 	rgb_SetColor(RGB_4, BLACK);
+        //     Key3_value = 0;
+        // }
+		// if (Key2_value) // 开始比赛，指示灯变绿
+        // {
+		// 	x--;
+        //     Turnplate_Move(x);
+		// 	rgb_SetColor(RGB_3, GREEN);
+		// 	delay_ms(wait_time);
+		// 	rgb_SetColor(RGB_3, BLACK);
+        //     Key2_value = 0;
+        // }		
+
+
+		// //成功收到数据
+		// k230_process();
+		// if( k230_rx_ok == 1 )
+		// {
+		// 	printf("%d  %d  %d   ",k230_d1,k230_d2,k230_d3);
+		// }
+		// delay_ms(500);
+
+
+        // vl53l0x_start_single_test(&vl53l0x_dev1,&vl53l0x_data);
         // printf("vl53l0x_dev2: %d\r\n", vl53l0x_data.RangeMilliMeter);
 		// delay_ms(500);
+		
 		// if(turnplate_flag==1)
 		// {
 		// 	if (Ball_falling() == 0)
@@ -144,11 +282,6 @@ int main(void)
 	
 
 
-
-		//测试激光测距
-		// vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
-		// printf("dev2:%5dmm\r\n", vl53l0x_data.RangeMilliMeter);
-		// delay_ms(1000);
 
 		// 测试openmv发回数据控制底盘
 		// switch (task)

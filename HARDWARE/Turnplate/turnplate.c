@@ -29,15 +29,15 @@ int8_t hole =0;
 
 struct Hole HoleArr[10] = {
         {.ball=1, .pos = 2480},
-        {.ball=1, .pos = 2280},
-        {.ball=1, .pos = 2080},
-        {.ball=1, .pos = 1880},
-        {.ball=1, .pos = 1680},
-        {.ball=1, .pos = 1480},
-        {.ball=1, .pos = 1280},
-        {.ball=1, .pos = 1080},
-        {.ball=1, .pos = 880},
-        {.ball=1, .pos = 680},
+        {.ball=1, .pos = 2270},
+        {.ball=1, .pos = 2070},
+        {.ball=1, .pos = 1870},
+        {.ball=1, .pos = 1670},
+        {.ball=1, .pos = 1460},
+        {.ball=1, .pos = 1260},
+        {.ball=1, .pos = 1060},
+        {.ball=1, .pos = 860},
+        {.ball=1, .pos = 660},
 };
 
 uint8_t Ball_falling(void)  //返回1表示没有球落下，返回0表示有球落下
@@ -88,7 +88,7 @@ void Turnplate_Move(int8_t idx)
 
     Turnplate_SetPos(HoleArr[idx].pos);
 
-    DelayTask_Add(1,wait_time+1000,(void (*)(void)) change_flag,"%d%d",&cx522_allow,1);
+    DelayTask_Add(1,wait_time+200,(void (*)(void)) change_flag,"%d%d",&cx522_allow,1);
 }
 
 void turnplate_blank(void)
@@ -128,13 +128,13 @@ void shake()
 {
     if(1 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos-100);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos-60);
         DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,2);
         shake_flag = 0;
     }
     else if(2 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos+100);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos+60);
         DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,1);
         shake_flag = 0;
     }
@@ -243,74 +243,132 @@ void turnplate_log(void)
 
 void turnplate_detect_test()
 {
-    if(1 == detect_allow) {
-        if (2 == detect_stage)
+    if(1 == detect_allow)
+    {
+        if (1 == detect_flag)
         {
-            if (1 == detect_flag)
+            Hole_Idx = 0;
+            detect_flag = 2;
+            detect_cpl = 0;
+        }
+        else if (2 == detect_flag)
+        {
+            while ( HoleArr[Hole_Idx].ball==1 ||  HoleArr[Hole_Idx].ic !=0) 
             {
-                if(1 == turnplate_dir)
-                {
-                    Hole_Idx = 0;
-                }
-                else if(-1 == turnplate_dir)
-                {
-                    Hole_Idx = 9;
-                }
-
-                detect_flag = 2;
-                detect_cpl = 0;
-            }
-            else if (2 == detect_flag)
-            {
-                while ( HoleArr[Hole_Idx].ball==1 ||  HoleArr[Hole_Idx].ic !=0) {
-                    Hole_Idx += turnplate_dir;
+                Hole_Idx += 1;
 //                    printf("Hole_Idx:%d\r\n", Hole_Idx);
-                    if (((-1 == Hole_Idx) && (-1 == turnplate_dir)) || ((TURNPLATE_HOLE_NUM == Hole_Idx) && (1 == turnplate_dir)))
+                if (Hole_Idx==10)
+                {
+                    for(int i=0;i<10;i++)
                     {
-                        for(int i=0;i<10;i++)
-                        {
-                            printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
-                        }
-                        turnplate_dir = 1;
-
-                        detect_cpl = 1;
-                        detect_flag = 1;
-                        detect_allow = 0;
-                        return;
-
+                        printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
                     }
-                }
-                Turnplate_Move(Hole_Idx);
-                shake_flag = 1;
-                detect_flag = 0;
-                timeout_S = TIME_S;
-                DelayTask_Add(1, wait_time+50, (void (*)(void)) change_flag, "%d%d", &detect_flag, 3);
-            }
-            else if (3 == detect_flag)
-            {
-//                if(TIME_S > (timeout_S + 20))
-//                {
-//                    printf("detect_timeout\r\n");
-//                    HoleArr[Hole_Idx_tmp].ball = 0;
-//                    HoleArr[Hole_Idx_tmp].ic = 0;
-//                    detect_flag = 2;
-//                    return;
-//                }
-                if(TIME_S > (timeout_S + 20))
-                {
-                   HoleArr[Hole_Idx].ic = 1;
-                   detect_flag = 2;
-                   return;
-                }
+                    detect_cpl = 1;
+                    detect_flag = 1;
+                    detect_allow = 0;
+                    return;
 
-                if (0 == HoleArr[Hole_Idx].ic)
-                {
-                    shake();
-                } else {
-                    detect_flag = 2;
                 }
+            }
+            Turnplate_Move(Hole_Idx);
+            shake_flag = 1;
+            detect_flag = 0;
+            timeout_S = TIME_S;
+            DelayTask_Add(1, wait_time+50, (void (*)(void)) change_flag, "%d%d", &detect_flag, 3);
+        }
+        else if (3 == detect_flag)
+        {
+            if(TIME_S > (timeout_S + 20))
+            {
+                printf("detect_timeout\r\n");
+                HoleArr[Hole_Idx].ic = 1;
+                detect_flag = 2;
+                return;
+            }
+
+            if (0 == HoleArr[Hole_Idx].ic)
+            {
+                shake();
+            } else {
+                detect_flag = 2;
             }
         }
-
     }
 }
+
+
+
+
+// void turnplate_detect_test()
+// {
+//     if(1 == detect_allow) {
+//         if (2 == detect_stage)
+//         {
+//             if (1 == detect_flag)
+//             {
+//                 if(1 == turnplate_dir)
+//                 {
+//                     Hole_Idx = 0;
+//                 }
+//                 else if(-1 == turnplate_dir)
+//                 {
+//                     Hole_Idx = 9;
+//                 }
+
+//                 detect_flag = 2;
+//                 detect_cpl = 0;
+//             }
+//             else if (2 == detect_flag)
+//             {
+//                 while ( HoleArr[Hole_Idx].ball==1 ||  HoleArr[Hole_Idx].ic !=0) {
+//                     Hole_Idx += turnplate_dir;
+// //                    printf("Hole_Idx:%d\r\n", Hole_Idx);
+//                     if (((-1 == Hole_Idx) && (-1 == turnplate_dir)) || ((TURNPLATE_HOLE_NUM == Hole_Idx) && (1 == turnplate_dir)))
+//                     {
+//                         for(int i=0;i<10;i++)
+//                         {
+//                             printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+//                         }
+//                         turnplate_dir = 1;
+
+//                         detect_cpl = 1;
+//                         detect_flag = 1;
+//                         detect_allow = 0;
+//                         return;
+
+//                     }
+//                 }
+//                 Turnplate_Move(Hole_Idx);
+//                 shake_flag = 1;
+//                 detect_flag = 0;
+//                 timeout_S = TIME_S;
+//                 DelayTask_Add(1, wait_time+50, (void (*)(void)) change_flag, "%d%d", &detect_flag, 3);
+//             }
+//             else if (3 == detect_flag)
+//             {
+// //                if(TIME_S > (timeout_S + 20))
+// //                {
+// //                    printf("detect_timeout\r\n");
+// //                    HoleArr[Hole_Idx_tmp].ball = 0;
+// //                    HoleArr[Hole_Idx_tmp].ic = 0;
+// //                    detect_flag = 2;
+// //                    return;
+// //                }
+//                 if(TIME_S > (timeout_S + 20))
+//                 {
+//                    HoleArr[Hole_Idx].ic = 1;
+//                    detect_flag = 2;
+//                    return;
+//                 }
+
+//                 if (0 == HoleArr[Hole_Idx].ic)
+//                 {
+//                     shake();
+//                 } else {
+//                     detect_flag = 2;
+//                 }
+//             }
+//         }
+
+//     }
+// }

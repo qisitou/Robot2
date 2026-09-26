@@ -87,7 +87,7 @@ void uart4_WriteBuf(uint8_t *buf, uint8_t len)
 {
 	while (len--)
 	{
-		while ((UART4->SR & 0x40) == 0)  //SR的第7位置，(USART_FLAG_TC)为1，等待发送结束
+		while ((UART4->SR & 0x40) == 0);  //SR的第7位置，(USART_FLAG_TC)为1，等待发送结束
         USART_SendData(UART4,*buf++);
 	}
 }

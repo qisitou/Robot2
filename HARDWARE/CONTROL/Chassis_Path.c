@@ -26,7 +26,7 @@ void Chassis_PathInit(void)
 	Chassis_PathPoint_StartToTurntable[1].vx=0;
 	Chassis_PathPoint_StartToTurntable[1].vy=500;
 	Chassis_PathPoint_StartToTurntable[1].Delta_Angle=Straight;
-	Chassis_PathPoint_StartToTurntable[1].t=0;
+	Chassis_PathPoint_StartToTurntable[1].t=135;
 	Chassis_PathPoint_StartToTurntable[1].K=600;
 
 	Chassis_Path_StartToTurntable.End_K=600;
@@ -97,7 +97,6 @@ void Chassis_PathInit(void)
 	Chassis_Path_StartToWarehouse.Path=Chassis_PathPoint_StartToWarehouse;
 
 	/*===============回家===============*/
-/*===============回家===============*/
 	Chassis_PathPoint_StartToHome[0].vx=300;
 	Chassis_PathPoint_StartToHome[0].vy=0;
 	Chassis_PathPoint_StartToHome[0].Delta_Angle=Straight;
@@ -107,8 +106,8 @@ void Chassis_PathInit(void)
 	Chassis_PathPoint_StartToHome[1].vx=0;
 	Chassis_PathPoint_StartToHome[1].vy=150;
 	Chassis_PathPoint_StartToHome[1].Delta_Angle=Straight;
-	Chassis_PathPoint_StartToHome[1].t=150;    // 向前 600mm
-	Chassis_PathPoint_StartToHome[1].K=400;
+	Chassis_PathPoint_StartToHome[1].t=0;    // 向前 600mm
+	Chassis_PathPoint_StartToHome[1].K=700;
 
 	Chassis_Path_StartToHome.End_K=300;
 	Chassis_Path_StartToHome.Path_Size=2;

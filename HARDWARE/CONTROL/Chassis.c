@@ -16,11 +16,17 @@
  */
 void Chassis_InverseMotionControl(float v_x,float v_y,float w)
 {
+	// if (target_color == 'b')
+	// {
+	// 	v_y=-v_y;
+	// }
+
 	int32_t LeftFront = v_x+v_y-w*(a_PARAMETER+b_PARAMETER);	//左前轮
 	int32_t RightFront= v_x-v_y-w*(a_PARAMETER+b_PARAMETER);	//右前轮
 	int32_t LeftRear  =-v_x+v_y-w*(a_PARAMETER+b_PARAMETER);	//左后轮
 	int32_t RightRear =-v_x-v_y-w*(a_PARAMETER+b_PARAMETER);	//右后轮
 	
+
 	StepMotor_SetSpeed(Chassis_LeftFrontWheel,LeftFront);
 	StepMotor_SetSpeed(Chassis_RightFrontWheel,RightFront);
 	StepMotor_SetSpeed(Chassis_LeftRearWheel,LeftRear);
@@ -99,7 +105,7 @@ void Chassis_GuiWei(float Start_Angle , uint16_t time)
     float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
     float SaveOutLow = Chassis_AnglePID.OUT_low, SaveOutUp = Chassis_AnglePID.OUT_up;
 
-    PID_PositionSetParameter(&Chassis_AnglePID,60,0,3);
+    PID_PositionSetParameter(&Chassis_AnglePID,70,0,3);
     PID_PositionSetOUTRange(&Chassis_AnglePID, -350, 350);   // 临时放开限幅,归位更猛
     for(int i=0;i<time;i++)
     {
@@ -255,11 +261,11 @@ void Chassis_TurnRight(void)
 {
 	Chassis_AnglePID.Need_Value-=180;
 	float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
-	PID_PositionSetParameter(&Chassis_AnglePID,8,0,3);
+	PID_PositionSetParameter(&Chassis_AnglePID,3,0,3);
 	while(1)
 	{
 		PID_AngleCalc(&Chassis_AnglePID,Yaw_Angle);
-		if(Chassis_AnglePID.Ek==0)break;
+		if(Chassis_AnglePID.Ek>-3&&Chassis_AnglePID.Ek<3)break;
 		
 		Chassis_InverseMotionControl(0,0,Chassis_AnglePID.OUT*3);
 		delay_ms(2);
@@ -280,12 +286,12 @@ void Chassis_TurnLeft(float yaw )
 	
 	Chassis_AnglePID.Need_Value+=yaw;
 	float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
-	PID_PositionSetParameter(&Chassis_AnglePID,3,0,3);
+	PID_PositionSetParameter(&Chassis_AnglePID,2,0,2);
 
 	while(1)
 	{
 		PID_AngleCalc(&Chassis_AnglePID,Yaw_Angle);
-		if(Chassis_AnglePID.Ek==0)break;
+		if(Chassis_AnglePID.Ek>-3&&Chassis_AnglePID.Ek<3)break;
 		
 		Chassis_InverseMotionControl(0,0,Chassis_AnglePID.OUT*4);
 		delay_ms(2);

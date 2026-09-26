@@ -59,7 +59,7 @@ void EXTI9_5_IRQHandler(void)
 
     if(EXTI_GetITStatus(EXTI_Line8)==1)
     {
-        delay_ms(5);
+        delay_ms(10);
         if (KEY2 == 0) {
             Key2_value = 1;
         }
@@ -67,7 +67,7 @@ void EXTI9_5_IRQHandler(void)
     }
     else if(EXTI_GetITStatus(EXTI_Line9)==1)
     {
-        delay_ms(5);
+        delay_ms(10);
         if (KEY3 == 0) {
             Key3_value = 1;
         }
@@ -79,7 +79,7 @@ void EXTI15_10_IRQHandler(void)
 {
     if(EXTI_GetITStatus(EXTI_Line11)==1)
     {
-        delay_ms(5);
+        delay_ms(10);
         if (KEY1 == 0) {
             Key1_value = 1;
         }

@@ -12,11 +12,11 @@ u8 cx522_rxbuf[23];
 
 // poll read-block-1 command frame
 static u8 cx522_read_cmd[] = {0x20,0x00,0x22,0x08,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x01,0xD4,0x03};
-                            
 // 找一个"完整帧"用的小状态机：0x20 当帧头，0x03 当帧尾（长度不写死，多长都行）
 static u8  cx522_frame[23];      // 拼出来的一帧数据（0x20 ... 0x03）
 static u16 cx522_frame_len = 0;  // 当前帧已收多少字节
 static u8  cx522_frame_on  = 0;  // 1=正在收一帧
+static u8 last_ic=0;
 
 // 把收到的每个字节喂进来：0x20 帧头、0x03 帧尾，收齐一帧就交给 cx522_ProcessData() 处理
 static void cx522_rx_byte(u8 b)
@@ -111,9 +111,11 @@ void cx522_ProcessData(void)
     // block-read response frame: 20 00 22 11 00 <16 data bytes> sum 03, 23 bytes total
     if((cx522_frame_len >= 23) && (0x22 == cx522_frame[2]) && (0x00 == cx522_frame[1]) && (0x00 == cx522_frame[4]))
     {
-        if((1 == cx522_allow) && (0 == HoleArr[Hole_Now_Idx].ic))
+        u8 ic = cx522_frame[10];
+        if((1 == cx522_allow) && (0 == HoleArr[Hole_Now_Idx].ic) && (ic!=last_ic))
         {
-            HoleArr[Hole_Now_Idx].ic = cx522_frame[10];
+            HoleArr[Hole_Now_Idx].ic = ic;
+            last_ic = ic;
         }
     }
 }
