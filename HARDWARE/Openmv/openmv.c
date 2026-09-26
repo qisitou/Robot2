@@ -66,15 +66,29 @@ void OPENMV_IRQHandler(void)                	//串口1中断服务程序
 
         if(('}' == Res) && (openmv_rxbuf[0] == '{'))
         {
-            openmv_rx_Idx++;
-            openmv_rxbuf[openmv_rx_Idx] = '}';
-            openmv_rx_Idx = 0;
-            openmv_rx_cpl = 1;
+            if (openmv_rx_Idx < sizeof(openmv_rxbuf) - 2)
+            {
+                openmv_rx_Idx++;
+                openmv_rxbuf[openmv_rx_Idx] = '}';
+                openmv_rxbuf[openmv_rx_Idx + 1] = '\0';
+                openmv_rx_Idx = 0;
+                openmv_rx_cpl = 1;
+            }
+            else
+            {
+                openmv_rx_Idx = 0;
+                openmv_rxbuf[0] = 0;
+            }
         }
-        else
+        else if (openmv_rx_Idx < sizeof(openmv_rxbuf) - 2 && openmv_rxbuf[0] == '{')
         {
             openmv_rx_Idx++;
             openmv_rxbuf[openmv_rx_Idx] = Res;
+        }
+        else
+        {
+            openmv_rx_Idx = 0;
+            openmv_rxbuf[0] = 0;
         }
 
     }

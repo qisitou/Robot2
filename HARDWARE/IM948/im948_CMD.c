@@ -1181,10 +1181,11 @@ void IM948_Init(void)
 void IM948_Reset()
 {
     Cmd_08();
-    delay_ms(20);
+    delay_ms(50);
     Cmd_05();
-    delay_ms(20);
+    delay_ms(50);
     Cmd_06();
+    delay_ms(50);
 }
 
 

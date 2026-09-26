@@ -9,7 +9,7 @@
 #define CX522_DMA_STREAMx DMA1_Stream2
 
 extern u8 cx522_allow;
-extern u8 cx522_rxbuf[50];
+extern u8 cx522_rxbuf[23];
 
 
 void cx522_Init(void);

@@ -8,13 +8,13 @@
 
 
 u8 cx522_allow = 1;  //????1?????????
-u8 cx522_rxbuf[50];
+u8 cx522_rxbuf[23];
 
 // poll read-block-1 command frame
 static u8 cx522_read_cmd[] = {0x20,0x00,0x22,0x08,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x01,0xD4,0x03};
-
+                            
 // 找一个"完整帧"用的小状态机：0x20 当帧头，0x03 当帧尾（长度不写死，多长都行）
-static u8  cx522_frame[50];      // 拼出来的一帧数据（0x20 ... 0x03）
+static u8  cx522_frame[23];      // 拼出来的一帧数据（0x20 ... 0x03）
 static u16 cx522_frame_len = 0;  // 当前帧已收多少字节
 static u8  cx522_frame_on  = 0;  // 1=正在收一帧
 
@@ -29,7 +29,7 @@ static void cx522_rx_byte(u8 b)
     }
     else if(1 == cx522_frame_on)              // 帧中：继续往里记
     {
-        if(cx522_frame_len < sizeof(cx522_frame))
+        if(cx522_frame_len <= sizeof(cx522_frame))
         {
             cx522_frame[cx522_frame_len++] = b;
 
@@ -57,24 +57,24 @@ static void cx522_rx_process(void)
     }
 }
 
-/**
- * @brief  UART4 中断：总线空闲（IDLE）= 读卡器这一串数据发完了
- * @param  无
- * @retval 无
- */
-void UART4_IRQHandler(void)
-{
-    if(USART_GetITStatus(CX522_UART, USART_IT_IDLE) != RESET)
-    {
-        volatile u32 tmp;
-        tmp = CX522_UART->SR;      // 读 SR 再读 DR 才能清掉 IDLE 标志（顺手把溢出错误也清掉）
-        tmp = CX522_UART->DR;
-        (void)tmp;
+// /**
+//  * @brief  UART4 中断：总线空闲（IDLE）= 读卡器这一串数据发完了
+//  * @param  无
+//  * @retval 无
+//  */
+// void UART4_IRQHandler(void)
+// {
+//     if(USART_GetITStatus(CX522_UART, USART_IT_IDLE) != RESET)
+//     {
+//         volatile u32 tmp;
+//         tmp = CX522_UART->SR;      // 读 SR 再读 DR 才能清掉 IDLE 标志（顺手把溢出错误也清掉）
+//         tmp = CX522_UART->DR;
+//         (void)tmp;
 
-        cx522_rx_process();        // 把这一串收到的数据喂进找帧状态机
-        MYDMA_Enable(CX522_DMA_STREAMx, sizeof(cx522_rxbuf));  // 重新开始收下一串
-    }
-}
+//         cx522_rx_process();        // 把这一串收到的数据喂进找帧状态机
+//         MYDMA_Enable(CX522_DMA_STREAMx, sizeof(cx522_rxbuf));  // 重新开始收下一串
+//     }
+// }
 
 /**
  * @brief  ?????CX522??????
@@ -84,10 +84,17 @@ void UART4_IRQHandler(void)
  */
 void cx522_Init(void)
 {
-    USART_ITConfig(CX522_UART, USART_IT_IDLE, ENABLE);  // 打开总线空闲中断：用它发现收了一半的乱数据并重新同步
+    //USART_ITConfig(CX522_UART, USART_IT_IDLE, ENABLE);  // 打开总线空闲中断：用它发现收了一半的乱数据并重新同步
     USART_DMACmd(CX522_UART, USART_DMAReq_Rx, ENABLE);  // ???UART4??DMA????????
     DMA_ITConfig(CX522_DMA_STREAMx, DMA_IT_TC, ENABLE);  // ???DMA???????????
     MYDMA_Enable(CX522_DMA_STREAMx, sizeof(cx522_rxbuf));  // 收满一整块或总线空闲都会进中断处理
+
+    // 启动 DMA 前清空 UART 接收残留
+    volatile u32 tmp;
+    tmp = CX522_UART->SR;
+    tmp = CX522_UART->DR;
+    tmp = CX522_UART->SR;
+    (void)tmp;
 
     DelayTask_Add(100000, 20, cx522_poll, NULL);
 }

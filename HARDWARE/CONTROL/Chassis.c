@@ -31,9 +31,10 @@ void Chassis_InverseMotionControl(float v_x,float v_y,float w)
  *函数简介:底盘速度设置
  *参数说明:vx		前进方向横向速度			向右为正
  *参数说明:vy		前进方向纵向速度			向前为正
- *参数说明:theta	前进方向和底盘方向夹角		从前进方向指向底盘方向,逆时针为正
- *返回类型:无
- *备注:进行世界坐标系和底盘坐标系的坐标变换
+ *参数说明:theta	前进方向和底盘方向夹角		从前进方向指向底盘方向,逆时针为正	
+ *参数说明:Start_Angle		把整条运动方向逆时针转 Start_Angle-Yaw
+ *返回类型:无			
+ *备注:进行世界坐标系和底盘坐标系的坐标变换	
  */
 void Chassis_SetSpeed(float vx,float vy,float Yaw,float Start_Angle)
 {
@@ -274,11 +275,12 @@ void Chassis_TurnRight(void)
  *返回类型:无
  *备注:无
  */
-void Chassis_TurnLeft(float yaw)
+void Chassis_TurnLeft(float yaw )
 {
+	
 	Chassis_AnglePID.Need_Value+=yaw;
 	float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
-	PID_PositionSetParameter(&Chassis_AnglePID,10,0,4);
+	PID_PositionSetParameter(&Chassis_AnglePID,3,0,3);
 
 	while(1)
 	{

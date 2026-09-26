@@ -28,22 +28,38 @@ int8_t hole =0;
 
 
 struct Hole HoleArr[10] = {
-        {.ball=1, .pos = 2500},
-        {.ball=1, .pos = 2250},
-        {.ball=1, .pos = 2050},
-        {.ball=1, .pos = 1850},
-        {.ball=1, .pos = 1650},
-        {.ball=1, .pos = 1450},
-        {.ball=1, .pos = 1250},
-        {.ball=1, .pos = 1050},
-        {.ball=1, .pos = 850},
-        {.ball=1, .pos = 650},
+        {.ball=1, .pos = 2480},
+        {.ball=1, .pos = 2280},
+        {.ball=1, .pos = 2080},
+        {.ball=1, .pos = 1880},
+        {.ball=1, .pos = 1680},
+        {.ball=1, .pos = 1480},
+        {.ball=1, .pos = 1280},
+        {.ball=1, .pos = 1080},
+        {.ball=1, .pos = 880},
+        {.ball=1, .pos = 680},
 };
 
 uint8_t Ball_falling(void)  //返回1表示没有球落下，返回0表示有球落下
 {
-    uint8_t value= PEin(14);
-    return value;
+    static uint8_t gpio_initialized = 0;
+
+    if (gpio_initialized == 0)
+    {
+        GPIO_InitTypeDef GPIO_InitStructure;
+
+        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
+        GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+        GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+        GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+        GPIO_Init(GPIOF, &GPIO_InitStructure);
+
+        gpio_initialized = 1;
+    }
+
+    return GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_13);
 }
 
 void Turnplate_SetPos(u16 pos)
@@ -112,14 +128,14 @@ void shake()
 {
     if(1 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos-60);
-        DelayTask_Add(1,200,(void (*)(void)) change_flag,"%d%d",&shake_flag,2);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos-100);
+        DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,2);
         shake_flag = 0;
     }
     else if(2 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos+60);
-        DelayTask_Add(1,200,(void (*)(void)) change_flag,"%d%d",&shake_flag,1);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos+100);
+        DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,1);
         shake_flag = 0;
     }
 }
@@ -251,9 +267,10 @@ void turnplate_detect_test()
 //                    printf("Hole_Idx:%d\r\n", Hole_Idx);
                     if (((-1 == Hole_Idx) && (-1 == turnplate_dir)) || ((TURNPLATE_HOLE_NUM == Hole_Idx) && (1 == turnplate_dir)))
                     {
-                        // for (int i = 0; i < 10; i++)
-                        // {
-                        // }
+                        for(int i=0;i<10;i++)
+                        {
+                            printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+                        }
                         turnplate_dir = 1;
 
                         detect_cpl = 1;
@@ -297,4 +314,3 @@ void turnplate_detect_test()
 
     }
 }
-
