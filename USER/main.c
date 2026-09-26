@@ -32,18 +32,21 @@ int main(void)
 	/*==f==================选择红蓝方====================*/
  	Choose_Color();					
  	/*====================前往大转盘====================*/
- 	Go_To_Turntable();
+ 	// Go_To_Turntable();
 	/*====================前往楼梯====================*/
- 	Go_To_Stairs();
+ 	// Go_To_Stairs();
 	/*====================前往小圆盘====================*/
   	// Go_To_Small_Turntable();
 	/*====================前往仓库====================*/
-  	// Go_To_Warehouse();
+  	Go_To_Warehouse();
  	/*====================前往====================*/
  	// Go_To_Home();
 
 	/*====================测试读卡器====================*/
-			// HoleArr[1].ball=0;
+	// Turnplate_Move(8);
+	// delay_ms(wait_time+200);
+	// 		HoleArr[0].ball=0;
+	// 		HoleArr[1].ball=0;
 			// HoleArr[2].ball=0;
 			// HoleArr[3].ball=0;
 			// HoleArr[4].ball=0;
@@ -64,6 +67,7 @@ int main(void)
 			// detect_allow=1;	
 
 
+
 	int8_t x=-1;
 
 
@@ -71,6 +75,44 @@ int main(void)
 	while (1)
 	{
 		
+		// RingLight_On();
+		// delay_ms(2000);
+		// RingLight_Off();
+		// delay_ms(2000);
+			//  if (openmv_rx_cpl == 1)
+            // {
+            //     /*===================================成功获得六个数=================================*/
+            //          /*=================发送的数据是从上到下有球的列数,+该列积木的数字===============*/
+            //     if (sscanf(openmv_rxbuf, "{%d,%d,%d,%d,%d,%d}", &layer[0],&openmv_warehouse_block_3,
+            //                 &layer[1],&openmv_warehouse_block_2,
+            //                 &layer[2],&openmv_warehouse_block_1 ) == 6)
+            //     printf("%d,%d,%d,%d,%d,%d",layer[0],openmv_warehouse_block_3,layer[1],openmv_warehouse_block_2,layer[2],openmv_warehouse_block_1);
+            //     openmv_rx_cpl = 0;
+            // }	  
+            // delay_ms(500);
+            // // k230_process();
+            // // if( k230_rx_ok == 1 )
+            // // {
+            // //     printf("%d  %d  %d",k230_d1,k230_d2,k230_d3);
+            // // }
+
+        
+
+
+		// if (openmv_rx_cpl == 1)
+		// {
+		// 	/*===================================成功获得六个数=================================*/
+		// 			/*=================发送的数据是从上到下有球的列数,+该列积木的数字===============*/
+		// 	if (sscanf(openmv_rxbuf, "{%d,%d,%d,%d,%d,%d}", &layer[0],&openmv_warehouse_block_3,
+		// 				&layer[1],&openmv_warehouse_block_2,
+		// 				&layer[2],&openmv_warehouse_block_1 ) == 6)
+		// 	{
+		// 		printf("%d    %d    %d    %d   %d   %d",layer[0],openmv_warehouse_block_3,layer[1],openmv_warehouse_block_2,layer[2],openmv_warehouse_block_1);
+		// 	}
+		// 	openmv_rx_cpl = 0;
+		// }	
+		
+			
 		//测试激光测距
 		
 		// vl53l0x_start_single_test(&vl53l0x_dev1,&vl53l0x_data);
@@ -233,9 +275,6 @@ int main(void)
 		// delay_ms(500);
 
 		/*====================确认可以收到数据和切换任务====================*/
-		// openmv_send("{2}");
-		
-
 		// if (openmv_rx_cpl == 1)
 		// {
 		// 	openmv_rx_cpl=0;		

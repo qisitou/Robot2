@@ -36,9 +36,12 @@ void k230_process(void)
     if (k230_rx_cpl == 1)
     {
         // 任务6:三个数字拼成一帧,如{123}
-        if (sscanf(k230_rxbuf, "{%1d%1d%1d}", &k230_d1, &k230_d2, &k230_d3) == 3)
+        if (sscanf(k230_rxbuf, "{%1d%1d%1d}", &k230_d1, &k230_d2, &k230_d3) == 3
+            && k230_d1 != k230_d2
+            && k230_d1 != k230_d3
+            && k230_d2 != k230_d3)
         {
-            k230_rx_ok = 1;   
+            k230_rx_ok = 1;
         }
         else
         {

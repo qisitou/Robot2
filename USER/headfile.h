@@ -45,6 +45,7 @@
 #include "filter.h"
 #include "openmv.h"
 #include "k230.h"
+#include "RingLight.h"
 
 extern int a;
 

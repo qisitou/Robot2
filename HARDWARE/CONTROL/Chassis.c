@@ -16,10 +16,6 @@
  */
 void Chassis_InverseMotionControl(float v_x,float v_y,float w)
 {
-	// if (target_color == 'b')
-	// {
-	// 	v_y=-v_y;
-	// }
 
 	int32_t LeftFront = v_x+v_y-w*(a_PARAMETER+b_PARAMETER);	//左前轮
 	int32_t RightFront= v_x-v_y-w*(a_PARAMETER+b_PARAMETER);	//右前轮
@@ -44,6 +40,12 @@ void Chassis_InverseMotionControl(float v_x,float v_y,float w)
  */
 void Chassis_SetSpeed(float vx,float vy,float Yaw,float Start_Angle)
 {
+
+    if (target_color == 'b')
+    {
+        vy = -vy;
+    }
+
 	float theta = Yaw-Start_Angle;
 
 	theta=theta*Data_Deg2Rad;
@@ -257,9 +259,9 @@ void Chassis_MovePath(Chassis_Path Path)
  *返回类型:无
  *备注:无
  */
-void Chassis_TurnRight(void)
+void Chassis_TurnRight(float yaw)
 {
-	Chassis_AnglePID.Need_Value-=180;
+	Chassis_AnglePID.Need_Value-=yaw;
 	float SaveKp=Chassis_AnglePID.Kp,SaveKi=Chassis_AnglePID.Ki,SaveKd=Chassis_AnglePID.Kd;
 	PID_PositionSetParameter(&Chassis_AnglePID,3,0,3);
 	while(1)

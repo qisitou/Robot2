@@ -14,7 +14,8 @@ void Chassis_MoveOnce(float vx,float vy,float Delta_Angle,float t,float K);					
 void Chassis_MoveOncePath(Chassis_Path Path);																//底盘单次路径移动
 void Chassis_Move(Chassis_Path Path);																		//底盘单路径移动
 void Chassis_MovePath(Chassis_Path Path);																	//底盘路径移动													//底盘转到目标角度
-void Chassis_TurnLeft(float yaw);																					//底盘左转
+void Chassis_TurnLeft(float yaw);	
+void Chassis_TurnRight(float yaw);																				//底盘左转
 void Chassis_InverseMotionControl(float v_x,float v_y,float w);
 void Chassis_SetSpeed(float vx,float vy,float Yaw,float Start_Angle);
 void Chassis_GuiWei(float Start_Angle , uint16_t time);

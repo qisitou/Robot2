@@ -84,6 +84,10 @@ void Turnplate_Move(int8_t idx)
     {
         wait_time = idx_bias*260;
     }
+    if(idx_bias>5||idx_bias<-5)
+    {
+        wait_time=wait_time+1000;
+    }
     last_Idx = idx;
 
     Turnplate_SetPos(HoleArr[idx].pos);
@@ -128,13 +132,13 @@ void shake()
 {
     if(1 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos-60);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos-40);
         DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,2);
         shake_flag = 0;
     }
     else if(2 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos+60);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos+40);
         DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,1);
         shake_flag = 0;
     }
@@ -274,11 +278,11 @@ void turnplate_detect_test()
             shake_flag = 1;
             detect_flag = 0;
             timeout_S = TIME_S;
-            DelayTask_Add(1, wait_time+50, (void (*)(void)) change_flag, "%d%d", &detect_flag, 3);
+            DelayTask_Add(1, wait_time+300, (void (*)(void)) change_flag, "%d%d", &detect_flag, 3);
         }
         else if (3 == detect_flag)
         {
-            if(TIME_S > (timeout_S + 20))
+            if(TIME_S > (timeout_S + 6))
             {
                 printf("detect_timeout\r\n");
                 HoleArr[Hole_Idx].ic = 1;

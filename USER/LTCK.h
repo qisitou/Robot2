@@ -15,6 +15,8 @@ extern volatile uint8_t turnplate_flag;
 extern volatile uint8_t ball_num;
 extern volatile uint8_t turntabel_end;
 extern volatile uint8_t delay_task;
+extern volatile int8_t red_or_blue;
+extern volatile uint8_t left_warehourse;
 
 void LTCK_Init(void);
 void Choose_Color(void);
