@@ -60,7 +60,6 @@ void LTCK_Init(void)
     rgb_SetColor(RGB_1, RED);
 
     StepMotor_Init();   // 步进电机初始化
-    Chassis_PathInit(); // 底盘路径初始化
     Chassis_PID_Init(); // 底盘PID初始化
     delay_ms(50);
     rgb_SetColor(RGB_1, YELLOW);
@@ -91,7 +90,7 @@ void Choose_Color(void)
             case Red:
                 rgb_SetColor(RGB_2, RED);
                 target_color = 'r';
-                DelayTask_Add(1, 3000, (void (*)(void))openmv_send, "%s", "{R}");
+                DelayTask_Add(1, 2000, (void (*)(void))openmv_send, "%s", "{R}");
                 break;
             case Blue:
                 rgb_SetColor(RGB_2, BLUE);
@@ -100,15 +99,15 @@ void Choose_Color(void)
                 {
                     red_or_blue=-1;
                 }                
-                DelayTask_Add(1, 3000, (void (*)(void))openmv_send, "%s", "{B}");
+                DelayTask_Add(1, 2500, (void (*)(void))openmv_send, "%s", "{B}");
                 break;
-
             }
             Key1_value = 0;
         }
 
         if (Key3_value) // 开始比赛，指示灯变绿
         {
+            Chassis_PathInit(); // 底盘路径初始化
             if (Selected_Color == Red || Selected_Color == Blue)
             {
                 Start_init = true;
@@ -125,11 +124,11 @@ void Set_KeepDistance_X(float Vx, float Vy, float angle, float target_angle, flo
     Vx = 0.8 *(target_dis - vl53l0x_data.RangeMilliMeter);
 
 
-    if (Vx > 300)
-        Vx = 0;
-    if (Vx < -300)
-        Vx = 0;
 
+    if(vl53l0x_data.RangeMilliMeter>target_dis-3&&vl53l0x_data.RangeMilliMeter<target_dis)
+    {
+        Vx=0;
+    }
     Chassis_SetSpeed(Vx, Vy, angle, target_angle);
 }
 
@@ -239,9 +238,10 @@ void Go_To_Turntable(void)
     uint8_t turntable_num=0;
     uint8_t Disc_flag = 2;
 
-    /*====================前往大转盘====================*/
+    /*====================前往大转盘====================*/   
     Chassis_MovePath(Chassis_Path_StartToTurntable);
 
+    runActionGroup(1,1,false);
     /*====================定位====================*/    
     while (Range_ConsecutiveMatch_AutoCnt(GRAY_CH2, CMP_EQ, 0, 3))
     {
@@ -251,8 +251,6 @@ void Go_To_Turntable(void)
     Chassis_Stop();
     delay_ms(100);
 
-    runActionGroup(0,1,false);
-    delay_ms(1000);    
 
     while (Range_ConsecutiveMatch_AutoCnt((GRAY_CH2 != 0 && GRAY_CH3!= 0), CMP_EQ, 1, 3))
     {
@@ -265,7 +263,7 @@ void Go_To_Turntable(void)
     Chassis_GuiWei(0,500);
     Chassis_Stop();
 
-    /*====================开始推球====================*/
+    /*====================开始推球====================*/      
     while(turntabel_end==0)
     {
     	switch (turntable_task)
@@ -274,8 +272,6 @@ void Go_To_Turntable(void)
                 Chassis_Stop();
                  break;
             case 1:
-                runActionGroup(1,1,false);
-                delay_ms(500);
                 openmv_send("{1}");
                 turntable_task=2;
                 openmv_rx_cpl=0;
@@ -287,7 +283,7 @@ void Go_To_Turntable(void)
                     if (Ball_falling() == 0)
                     {
 
-                        HoleArr[Hole_Idx+3].ball = 0;
+                        // HoleArr[Hole_Idx+3].ball = 0;
                         Hole_Idx++;
                         ball_num++;
                         //printf("%d",ball_num);
@@ -303,7 +299,7 @@ void Go_To_Turntable(void)
                             return;
                         }
                         turnplate_flag=0;
-                        DelayTask_Add(1,500,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
+                        DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
                     }
                 }
                 
@@ -313,9 +309,9 @@ void Go_To_Turntable(void)
                     openmv_rx_command = 0;
                     openmv_rx_cpl=0;
                     sscanf(openmv_rxbuf,"{%c}",&openmv_rx_command);
-        //            printf("openmv_rx_comm:%c",openmv_rx_command);
+                    // printf("openmv_rx_comm:%c",openmv_rx_command);
 
-                    if(target_color == openmv_rx_command)
+                    if(openmv_rx_command == target_color)
                     // if(openmv_rx_command!=0)
                     {
                         //printf("stop2");
@@ -340,8 +336,6 @@ void Go_To_Turntable(void)
     	}
         
     }
-    runActionGroup(10,1,false);
-    delay_ms(700);
 
 }
 
@@ -351,7 +345,8 @@ void Go_To_Stairs(void)
 {
 
     
-
+    runActionGroup(3, 1, false);   
+    delay_ms(900);
 
 	u8 task = 1;
 	u8 identified=0;
@@ -363,8 +358,6 @@ void Go_To_Stairs(void)
     // detect_allow=1;
 
 
-
-
     /*====================检测到阶梯====================*/
     if (target_color == 'b')
 	{
@@ -372,37 +365,45 @@ void Go_To_Stairs(void)
         {
             Chassis_InverseMotionControl(200, 0, 250);
         }
+
         while (Yaw_Angle < 90)
         {
-            Chassis_InverseMotionControl(120, 0, 150);
-        }	
+            Chassis_InverseMotionControl(168, 0, 200);
+        }
+        Chassis_TurnLeft(180);	
 	}
     else
     {
         while (Yaw_Angle > -60)
         {
             Chassis_InverseMotionControl(200, 0, -250);
-        }
+        }   
         while (Yaw_Angle > -90)
         {
-            Chassis_InverseMotionControl(120, 0, -150);
+            Chassis_InverseMotionControl(160, 0, -200);
         }
+        Chassis_TurnRight(180);
     }
-    Chassis_TurnRight(180);
+
+    Chassis_SINAccel(0,0,-50,100,180,300);
     do
     {
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
-        Chassis_SetSpeed(-50, 120, Yaw_Angle, 180);
+        Chassis_SetSpeed(-50, 100, Yaw_Angle, 180);
     } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LT, 400, 3));
 
     // /*====================检测到阶梯====================*/
+
+    Chassis_SINAccel(-50,100,-80,0,180,50);
     do
     {
         /* code */
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
-        Chassis_SetSpeed(-100, 0, Yaw_Angle, 180);
+        Chassis_SetSpeed(-80, 0, Yaw_Angle, 180);
     } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LE, 230, 3));
 
+
+    Chassis_SINAccel(-80,0,-40,0,180,50);
     do
     {
         /* code */
@@ -410,7 +411,8 @@ void Go_To_Stairs(void)
         Chassis_SetSpeed(-40, 0, Yaw_Angle, 180);
     } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LE, 120, 3));
 
-    DelayTask_Add(1, 500, (void (*)(void))change_flag, "%d%d", &flag, 0);
+
+    DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &flag, 0);
     while (flag)
     {
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
@@ -419,12 +421,11 @@ void Go_To_Stairs(void)
     Chassis_Stop();
     flag = 1;
     /*====================回正====================*/
-    Chassis_GuiWei(180,200);
+    Chassis_GuiWei(180,500);
 
      /*====================机械臂先动====================*/
-    runActionGroup(3, 1, false);   
+
     openmv_send("{2}");
-    delay_ms(900);
 
 
 
@@ -437,7 +438,9 @@ void Go_To_Stairs(void)
     } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_GT, 150, 3));
     Chassis_Stop();
     /*====================定位:小车回到阶梯的位置====================*/
-    DelayTask_Add(1, 400, (void (*)(void))change_flag, "%d%d", &flag, 0);
+
+    Chassis_SINAccel(-50,0,0,50,180,50);
+    DelayTask_Add(1, 300, (void (*)(void))change_flag, "%d%d", &flag, 0);
     while (flag)
     {
         Chassis_SetSpeed(0, 50, Yaw_Angle, 180);
@@ -445,7 +448,9 @@ void Go_To_Stairs(void)
     flag = 1;
     Chassis_Stop();
 
-    DelayTask_Add(1, 500, (void (*)(void))change_flag, "%d%d", &flag, 0);
+    Chassis_GuiWei(180,500);
+
+    DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &flag, 0);
     while (flag)
     {
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
@@ -454,31 +459,13 @@ void Go_To_Stairs(void)
     Chassis_Stop();
     flag = 1;
 
-
-    // openmv_rx_cpl=0;
-    // DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &flag, 0);
-    // while (flag)
-    // {
-    //     if (openmv_rx_cpl == 1)
-    //     {
-    //         sscanf(openmv_rxbuf, "{%d,%d}",&openmv_rx_stair,&openmv_rx_stair_dis);	
-    //         Stairs_Err=openmv_rx_stair_dis-640;
-    //         Stairs_Chassis_Speed=Stairs_Err*0.3;
-    //         Set_KeepDistance_X(0, Stairs_Chassis_Speed, Yaw_Angle, 180, 90);
-    //         openmv_rx_cpl=0; 
-
-    //     }
-    // }
-    // Chassis_Stop();
-    // flag = 1;
-
     /*====================摄像头开始控制小车向右走====================*/
 
-    detect_allow=0;
-    detect_flag=1;
-    Hole_Idx=5;
-	Turnplate_Move(Hole_Idx);
-	delay_ms(wait_time+200);    
+    // detect_allow=0;
+    // detect_flag=1;
+    // Hole_Idx=5;
+	// Turnplate_Move(Hole_Idx);
+	// delay_ms(wait_time+200);    
 
 
 	while(stairs_ending==0)
@@ -500,6 +487,25 @@ void Go_To_Stairs(void)
 				task=2;
 				break;
 			
+            // case 5:
+            //     openmv_rx_cpl=0;
+            //     DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &flag, 0);
+            //     while (flag)
+            //     {
+            //         if (openmv_rx_cpl == 1)
+            //         {
+            //             sscanf(openmv_rxbuf, "{%d,%d}",&openmv_rx_stair,&openmv_rx_stair_dis);	
+            //             Stairs_Err=openmv_rx_stair_dis-640;
+            //             Stairs_Chassis_Speed=Stairs_Err*0.1;
+            //             Set_KeepDistance_X(0, Stairs_Chassis_Speed*0.5, Yaw_Angle, 180, 85);
+            //             openmv_rx_cpl=0; 
+
+            //         }
+            //     }
+            //     Chassis_Stop();
+            //     flag = 1;
+            //     task=2;
+            //     break;
 			case  2:
                vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
 				if(vl53l0x_data.RangeMilliMeter > 150)               // 冲过头了/楼梯不在
@@ -519,10 +525,10 @@ void Go_To_Stairs(void)
 						if (Stairs_Chassis_Speed>200)Stairs_Chassis_Speed=200;
 						if (Stairs_Chassis_Speed<-200)Stairs_Chassis_Speed=-200;
 						if (Stairs_Chassis_Speed<0)Stairs_Chassis_Speed=0;
-                        Set_KeepDistance_X(0, Stairs_Chassis_Speed+35, Yaw_Angle, 180, 85);		
+                        Set_KeepDistance_X(0, red_or_blue*(Stairs_Chassis_Speed)+35, Yaw_Angle, 180, 85);		
 						if (Stairs_Err>-70&&Stairs_Err<70)
 						{
-							Chassis_SINAccel(0, 25, 0, 0, Yaw_Angle, 70);
+							Chassis_SINAccel(0, 25, 0, 0, Yaw_Angle, 20);
 							DelayTask_Add(1,1000,(void (*)(void)) change_flag,"%d%d",&task,3);
 							identified=0;
 							task=0;
@@ -538,7 +544,7 @@ void Go_To_Stairs(void)
                                     sscanf(openmv_rxbuf, "{%d,%d}",&openmv_rx_stair,&openmv_rx_stair_dis);	
                                     Stairs_Err=openmv_rx_stair_dis-640;
                                     Stairs_Chassis_Speed=Stairs_Err*0.1;
-                                    Set_KeepDistance_X(0, Stairs_Chassis_Speed, Yaw_Angle, 180, 90);
+                                    Set_KeepDistance_X(0, red_or_blue*(Stairs_Chassis_Speed), Yaw_Angle, 180, 85);
                                     openmv_rx_cpl=0; 
 
                                 }
@@ -546,7 +552,6 @@ void Go_To_Stairs(void)
                             }
                             Chassis_Stop();
                             flag = 1;
-
 						}
 						openmv_rx_cpl=0;
 					}
@@ -568,7 +573,7 @@ void Go_To_Stairs(void)
                     if(soft_accel==0)//缓加速,为了不晃,下一轮开始时重新缓加速
                     {
                         soft_accel=1;
-                        Chassis_SINAccel(0, 0, 0, 50, Yaw_Angle, 200);
+                        Chassis_SINAccel(0, 0, 0, 50, Yaw_Angle, 150);
                     }
                     else
                     {
@@ -576,7 +581,14 @@ void Go_To_Stairs(void)
                     }									
 				}break;	
 			case 3:
-				Chassis_Stop();
+                DelayTask_Add(1, 500, (void (*)(void))change_flag, "%d%d", &flag, 0);
+                while (flag)
+                {
+                    vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
+                    Set_KeepDistance_X(0, 0, Yaw_Angle, 180, 85);
+                }
+                Chassis_Stop();
+                flag = 1;            
 				if (openmv_rx_stair==3)
 				{
 					runActionGroup(4, 1, false);
@@ -601,13 +613,14 @@ void Go_To_Stairs(void)
 					if (Ball_falling() == 0)
 					{
                         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
-						HoleArr[Hole_Idx+3].ball = 0;
+						// HoleArr[Hole_Idx+3].ball = 0;
 						Hole_Idx++;	
 
 						Turnplate_Move(Hole_Idx);
-						DelayTask_Add(1,500,(void (*)(void)) change_flag,"%d%d",&task,2);	
+						DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&task,2);	
 
-						DelayTask_Add(1,500,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
+						DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
+                        rgb_SetColor(RGB_3, BLUE);
 						turnplate_flag = 0;
                         soft_accel=0;
 					}
@@ -705,11 +718,11 @@ void Go_To_Small_Turntable(void)
 
 
 
-    detect_allow=0;
-    detect_flag=1;
-    Hole_Idx=7;
-	Turnplate_Move(Hole_Idx);
-	delay_ms(wait_time+200);   
+    // detect_allow=0;
+    // detect_flag=1;
+    // Hole_Idx=7;
+	// Turnplate_Move(Hole_Idx);
+	// delay_ms(wait_time+200);   
 
 
 
@@ -753,7 +766,7 @@ void Go_To_Small_Turntable(void)
                     sscanf(openmv_rxbuf,"{%c}",&openmv_rx_command);
                     // printf("openmv_rx_command:%c",openmv_rx_command);
                     // if(openmv_rx_command==target_color)
-                    if(openmv_rx_command!=0)
+                    if(openmv_rx_command==target_color)
                     {
                         if(delay==0)
                         {
@@ -779,7 +792,7 @@ void Go_To_Small_Turntable(void)
                     if (Ball_falling() == 0)
                     {
                         rgb_SetColor(RGB_3, RED);
-                        HoleArr[Hole_Idx_Falling(Hole_Idx)].ball = 0;
+                        // HoleArr[Hole_Idx_Falling(Hole_Idx)].ball = 0;
                         Hole_Idx++;
                         ball_num++;
                         Turnplate_Move(Hole_Idx);
@@ -836,26 +849,44 @@ void Go_To_Warehouse(void)
 {
 
     ///*====================写死===================*/
-        // HoleArr[1].ball=0;
+    Hole_Idx=0;
+    Turnplate_Move(Hole_Idx);
+    delay_ms(wait_time+200);
+
+        HoleArr[0].ball=0;
+        HoleArr[1].ball=0;
         // HoleArr[2].ball=0;
-        // HoleArr[3].ball=0;
-        // HoleArr[4].ball=0;
-        // HoleArr[5].ball=0;
-        // HoleArr[6].ball=0;
-		// HoleArr[7].ball=0;
-        // HoleArr[8].ball=0;
-        // HoleArr[9].ball=0;      			
-     
+        HoleArr[3].ball=0;
+        HoleArr[4].ball=0;
+        HoleArr[5].ball=0;
+        HoleArr[6].ball=0;
+		HoleArr[7].ball=0;
+        HoleArr[8].ball=0;
+        HoleArr[9].ball=0;    
+
+		 HoleArr[0].ic=0;	
+		 HoleArr[1].ic=0;
+		 HoleArr[2].ic=0;		
+		 HoleArr[3].ic=0;
+		 HoleArr[4].ic=0;
+		 HoleArr[5].ic=0;
+		 HoleArr[6].ic=0;		
+		 HoleArr[7].ic=0;
+		 HoleArr[8].ic=0;
+		 HoleArr[9].ic=0;	
+
+
+        cx522_allow_all=1;
         detect_flag=1;       
         detect_allow=1;
-        delay_ms(50);
+        delay_ms(100);
         while (detect_cpl==0);   
         
         for(int i=0;i<10;i++)
         {
             printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
         }
-
+        cx522_allow_all=0;
 		//  HoleArr[0].ic=0x13;	
 		//  HoleArr[1].ic=0x31;
 		//  HoleArr[2].ic=0x21;		
@@ -892,10 +923,10 @@ void Go_To_Warehouse(void)
         Chassis_TurnLeft(90);
         Chassis_AnglePID.Need_Value = 90; //可以试一下放在Chassis_TurnLeft()
         Chassis_GuiWei(90,300);
-
+        Chassis_Stop();
         /*====================k230检测数字(仓库顺序)====================*/
 
-		DelayTask_Add(1, 3000, (void (*)(void))change_flag, "%d%d", &overtime_flag_1, 1);
+		DelayTask_Add(1, 5000, (void (*)(void))change_flag, "%d%d", &overtime_flag_1, 1);
 		while (overtime_flag_1==0)
         {
             k230_process();
@@ -926,12 +957,13 @@ void Go_To_Warehouse(void)
 
         // /*====================openmv检测数字====================*/
         RingLight_On();
-        runActionGroup(9, 1, false);
-        arm_finish_waiting();
+        // runActionGroup(9, 1, false);
+        // arm_finish_waiting();
         openmv_send("{6}");
+        delay_ms(1000);
         openmv_rx_cpl=0;
 
-		DelayTask_Add(1, 10000, (void (*)(void))change_flag, "%d%d", &overtime_flag_2, 1);
+		DelayTask_Add(1, 100, (void (*)(void))change_flag, "%d%d", &overtime_flag_2, 1);
 
 
         uint8_t openmv_ok_cnt=0;
@@ -992,13 +1024,13 @@ void Go_To_Warehouse(void)
 		/*====================检测仓库====================*/
         Chassis_AnglePID.Need_Value = 90;
         runActionGroup(14, 1, false);//准备
-        arm_finish_waiting();
-        Chassis_SINAccel(0,0,0,red_or_blue*(-100),90,100);
+        delay_ms(1000);
+        Chassis_SINAccel(0,0,0,red_or_blue*(-80),90,100);
         do
         {
             /* code */
             vl53l0x_start_single_test(&vl53l0x_dev1, &vl53l0x_data);
-            Chassis_SetSpeed(0, red_or_blue*(-100), Yaw_Angle, 90);
+            Chassis_SetSpeed(0, red_or_blue*(-80), Yaw_Angle, 90);
         } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LE, 400, 3));
         Chassis_SINAccel(0,red_or_blue*(-80),0,red_or_blue*(-50),90,50);
         do
@@ -1024,7 +1056,7 @@ void Go_To_Warehouse(void)
         flag = 1;
         /*====================定位前准备1:小车移动到离开阶梯的位置====================*/
         delay_ms(10);
-        Chassis_SINAccel(0,0,red_or_blue*(50),0,90,150);
+        Chassis_SINAccel(0,0,50,0,90,150);
         do
         {
             /* code */
@@ -1077,10 +1109,13 @@ void Go_To_Warehouse(void)
                             {
                                 Turnplate_Move(hole+3);
                                 delay_ms(wait_time+300);              // 等转盘真正转到位
-                                runActionGroup(10+warehouse_row, 1, false);
-                                // printf("hole:%d\r\n",hole);
-                                // printf("movement%d\r\n",10+warehouse_row);                                
-                               arm_finish_waiting();                       // 等机械臂做完(自带10s兜底)
+                                runActionGroup(10+warehouse_row, 1, false);                          
+                                arm_finish_waiting();                       // 等机械臂做完(自带10s兜底)
+                                printf("hole:%d\r\n",hole);
+                                printf("movement%d\r\n",10+warehouse_row);     
+                                delay_ms(1500); 
+
+
                                 HoleArr[hole].ic = 0;
                             }
                             warehouse_row--;
@@ -1140,9 +1175,9 @@ void Go_To_Home(void)
 
             if (f == 1)
             {
-				Chassis_SINAccel(0,0,0,-40,90,50);
-                Chassis_FixSpeed(0, -40, 90, 50);
-				Chassis_SINAccel(0,-40,0,0,90,50);
+				Chassis_SINAccel(0,0,0,red_or_blue*(-40),90,50);
+                Chassis_FixSpeed(0, red_or_blue*(-40), 90, 50);
+				Chassis_SINAccel(0,red_or_blue*(-40),0,0,90,50);
             }
             if (r == 1)
             {
@@ -1152,9 +1187,9 @@ void Go_To_Home(void)
             }
             if (b == 1)
             {
-				Chassis_SINAccel(0,0,0,40,90,50);
-                Chassis_FixSpeed(0, 40, 90, 50);
-				Chassis_SINAccel(0,40,0,0,90,50);				
+				Chassis_SINAccel(0,0,0,red_or_blue*(40),90,50);
+                Chassis_FixSpeed(0, red_or_blue*(40), 90, 50);
+				Chassis_SINAccel(0,red_or_blue*(40),0,0,90,50);				
             }
             if (l == 1)
             {
@@ -1170,7 +1205,7 @@ void Go_To_Home(void)
             } // 全部为红色，退出循环
         }
 
-		Chassis_SINAccel(0,0,50,0,90,50);
+		Chassis_SINAccel(0,0,-50,0,90,50);
         while (Range_ConsecutiveMatch_AutoCnt(GRAY_CH2, CMP_EQ, 1, 10))
         {
             delay_ms(10);
@@ -1183,17 +1218,17 @@ void Go_To_Home(void)
 		Chassis_SINAccel(50,0,0,0,90,50);
         Chassis_Stop();
 
-		Chassis_SINAccel(0,0,0,50,90,50);
+		Chassis_SINAccel(0,0,0,red_or_blue*(50),90,50);
         while (Range_ConsecutiveMatch_AutoCnt(GRAY_front, CMP_EQ, 1, 10))
         {
             delay_ms(10);
             // printf("GRAY_CH1:%d\n\r", GRAY_front);
 			// Chassis_SINAccel(0,0,0,50,0,50);
-            Chassis_SetSpeed(0, 50, Yaw_Angle, 90);
+            Chassis_SetSpeed(0, red_or_blue*(50), Yaw_Angle, 90);
         }
-		Chassis_SINAccel(0,50,0,-50,90,100);
-        Chassis_FixSpeed(0, -50, 90, 150);
-		Chassis_SINAccel(0,-50,0,0,90,50);
+		Chassis_SINAccel(0,red_or_blue*(50),0,red_or_blue*(-50),90,100);
+        Chassis_FixSpeed(0, red_or_blue*(-50), 90, 150);
+		Chassis_SINAccel(0,red_or_blue*(-50),0,0,90,50);
         Chassis_Stop();		
 
         while (1);

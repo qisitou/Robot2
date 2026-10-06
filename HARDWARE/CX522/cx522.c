@@ -6,7 +6,7 @@
 #include "turnplate.h"   //用到 HoleArr 和 Hole_Now_Idx
 
 
-
+u8 cx522_allow_all = 0;  //????1?????????
 u8 cx522_allow = 1;  //????1?????????
 u8 cx522_rxbuf[23];
 
@@ -125,11 +125,16 @@ void cx522_poll(void)
 {
     static u8 tick = 0;
 
-    if(1 != cx522_allow)
+    if(1 != cx522_allow_all)
     {
         return;
     }
 
+    if(1 != cx522_allow)
+    {
+        return;
+    }
+    
     if(tick < 5)
     {
         tick++;

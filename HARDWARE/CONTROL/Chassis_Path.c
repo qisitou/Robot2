@@ -97,17 +97,48 @@ void Chassis_PathInit(void)
 	Chassis_Path_StartToWarehouse.Path=Chassis_PathPoint_StartToWarehouse;
 
 	/*===============回家===============*/
-	Chassis_PathPoint_StartToHome[0].vx=300;
+	if(target_color == 'b')
+	{
+		Chassis_PathPoint_StartToHome[0].vx=-300;
+	}
+	else
+	{
+		Chassis_PathPoint_StartToHome[0].vx=300;
+	}
+
+
+
+	// Chassis_PathPoint_StartToHome[0].vx=300;
+
+
 	Chassis_PathPoint_StartToHome[0].vy=0;
 	Chassis_PathPoint_StartToHome[0].Delta_Angle=Straight;
 	Chassis_PathPoint_StartToHome[0].t=400;   // 向右 2400mm
+	if(target_color == 'b')
+	{
+		Chassis_PathPoint_StartToHome[0].t=120;
+	}
+	else
+	{
+		Chassis_PathPoint_StartToHome[0].t=380;
+	}
 	Chassis_PathPoint_StartToHome[0].K=400;
 
+
+	
 	Chassis_PathPoint_StartToHome[1].vx=0;
-	Chassis_PathPoint_StartToHome[1].vy=150;
+
+	if(target_color == 'b')
+	{
+		Chassis_PathPoint_StartToHome[1].vy=-150;
+	}
+	else
+	{
+		Chassis_PathPoint_StartToHome[1].vy=150;
+	}	
 	Chassis_PathPoint_StartToHome[1].Delta_Angle=Straight;
 	Chassis_PathPoint_StartToHome[1].t=0;    // 向前 600mm
-	Chassis_PathPoint_StartToHome[1].K=700;
+	Chassis_PathPoint_StartToHome[1].K=650;
 
 	Chassis_Path_StartToHome.End_K=300;
 	Chassis_Path_StartToHome.Path_Size=2;

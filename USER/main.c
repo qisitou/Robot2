@@ -30,23 +30,23 @@ int main(void)
 	LTCK_Init();   
 	// DelayTask_Add(1000000, 1000, (void (*)(void))Print_Stairs_Info_Task, NULL);  
 	/*==f==================选择红蓝方====================*/
- 	Choose_Color();					
- 	/*====================前往大转盘====================*/
+ 	Choose_Color();		
+ 	// /*====================前往大转盘====================*/
  	Go_To_Turntable();
-	/*====================前往楼梯====================*/
+	// // /*====================前往楼梯====================*/
  	Go_To_Stairs();
-	/*====================前往小圆盘====================*/
+	// // /*====================前往小圆盘====================*/
   	Go_To_Small_Turntable();
-	/*====================前往仓库====================*/
+	// // /*====================前往仓库====================*/
   	Go_To_Warehouse();
- 	/*====================前往====================*/
+ 	// // /*====================前往====================*/
  	Go_To_Home();
 
 	/*====================测试读卡器====================*/
 	// Turnplate_Move(8);
 	// delay_ms(wait_time+200);
-	// 		HoleArr[0].ball=0;
-	// 		HoleArr[1].ball=0;
+			// HoleArr[0].ball=0;
+			// HoleArr[1].ball=0;
 			// HoleArr[2].ball=0;
 			// HoleArr[3].ball=0;
 			// HoleArr[4].ball=0;
@@ -63,8 +63,18 @@ int main(void)
 			// HoleArr[6].ic=0x32;		
 			// HoleArr[7].ic=0x13;
 			// HoleArr[8].ic=0x23;
-			// HoleArr[9].ic=0x33;		
-			// detect_allow=1;	
+			// HoleArr[9].ic=0x33;
+			
+	    // cx522_allow_all=1;   
+        // detect_allow=1;
+        // delay_ms(100);
+        // while (detect_cpl==0);   
+        
+        // for(int i=0;i<10;i++)
+        // {
+        //     printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+        // }		
+
 
 
 
@@ -74,7 +84,6 @@ int main(void)
 	uint8_t test=0;
 	while (1)
 	{
-		
 		// RingLight_On();
 		// delay_ms(2000);
 		// RingLight_Off();
@@ -275,6 +284,8 @@ int main(void)
 		// delay_ms(500);
 
 		/*====================确认可以收到数据和切换任务====================*/
+
+
 		// if (openmv_rx_cpl == 1)
 		// {
 		// 	openmv_rx_cpl=0;		
@@ -364,6 +375,13 @@ int main(void)
 		// printf("GRAY_CH5:%d\n\r", GRAY_CH5);
 		// printf("GRAY_CH6:%d\n\r", GRAY_CH6);
 		// printf("GRAY_CH7:%d\n\r", GRAY_CH7);
+		// printf("CH2:%d\n\r", GRAY_CH2);
+		// printf("CH3:%d\n\r", GRAY_CH3);
+
+		// printf("GRAY_CH2:%d\n\r", GRAY_CH2);
+		// printf("GRAY_Right:%d\n\r", GRAY_Right);
+		// printf("GRAY_behind:%d\n\r", GRAY_behind);
+		// printf("GRAY_front:%d\n\r", GRAY_front);	
 		// delay_ms(1000);
 
 	}
