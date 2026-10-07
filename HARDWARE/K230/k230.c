@@ -41,7 +41,10 @@ void k230_process(void)
             && k230_d1 != k230_d3
             && k230_d2 != k230_d3)
         {
+            printf("%d %d %d\r\n",
+                k230_d1, k230_d2, k230_d3);
             k230_rx_ok = 1;
+
         }
         else
         {

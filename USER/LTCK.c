@@ -27,11 +27,25 @@ void LTCK_Init(void)
     RingLight_Init();
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); // 设置系统中断优先级分组2
     /*
-        优先级高低：外设 抢占优先级 子优先级
+        当前 NVIC 配置：分组2，抢占优先级和子优先级均为0~3，数字越小越优先。
+        抢占优先级相同的中断不能互相抢占；子优先级只决定挂起时的服务顺序。
 
-        陀螺仪                0   0
-        电机（TIM5）          1   0
-        延时函数（TIM7）      1   2
+        外设 / 中断                         抢占优先级  子优先级
+        陀螺仪（USART2）                         0          0
+        底盘电机（TIM5）                         1          0
+        CAN接收（CAN1_RX0）                      1          0
+        OpenMV（USART1）                         1          1
+        K230（USART6）                           1          2
+        延时任务调度（TIM7）                     1          2
+        舵机控制板接收（USART3）                 2          1
+        定时器（TIM6_DAC）                       2          2
+        读卡器接收（DMA1_Stream2）               2          2
+        按键（EXTI9_5、EXTI15_10）               3          3
+
+        UART4的NVIC配置为3/1，但当前未启用RXNE/IDLE接收中断，读卡走DMA。
+        UART5调试串口未启用NVIC中断；舵机发送DMA1_Stream3未启用完成中断。
+        TIM3中断初始化函数配置为2/3、测距EXTI0配置为3/2，当前初始化流程未启用。
+        DMA传输仲裁优先级与上述NVIC中断优先级不同。
     */
     Gray_Init();                      // 灰度传感器
     LED_Init();                       // LED
@@ -126,7 +140,8 @@ void Set_KeepDistance_X(float Vx, float Vy, float angle, float target_angle, flo
 
     Vx = 0.8 *(target_dis - vl53l0x_data.RangeMilliMeter);
 
-
+    if(vl53l0x_data.RangeMilliMeter>300)Vx=0;
+    if(vl53l0x_data.RangeMilliMeter<-300)Vx=0;
 
     if(vl53l0x_data.RangeMilliMeter>target_dis-3&&vl53l0x_data.RangeMilliMeter<target_dis)
     {
@@ -337,7 +352,7 @@ void Go_To_Turntable(void)
                         {
                             //printf("stop3");
                             turntable_num=1;
-                            delay_ms(500);
+                            delay_ms(400);
                         }
                         else
                         {
@@ -468,7 +483,7 @@ void Go_To_Stairs(void)
 
     Chassis_GuiWei(180,500);
 
-    DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &flag, 0);
+    DelayTask_Add(1, 2000, (void (*)(void))change_flag, "%d%d", &flag, 0);
     while (flag)
     {
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
@@ -614,16 +629,19 @@ void Go_To_Stairs(void)
                 flag = 1;            
 				if (openmv_rx_stair==3)
 				{
+                    delay_ms(100);
 					runActionGroup(4, 1, false);
                     delay_ms(3000);
 				}
 				else if (openmv_rx_stair==2)
 				{
+                    delay_ms(100);
 					runActionGroup(5, 1, false);
                     delay_ms(3000);  
 				}
 				else if (openmv_rx_stair==1)
 				{
+                    delay_ms(100);
 					runActionGroup(6, 1, false);
                     delay_ms(3000);
 				}
@@ -938,6 +956,8 @@ void Go_To_Warehouse(void)
             printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
         }
         cx522_allow_all=0;
+
+
 		//  HoleArr[0].ic=0x13;	
 		//  HoleArr[1].ic=0x31;
 		//  HoleArr[2].ic=0x21;		
@@ -966,6 +986,7 @@ void Go_To_Warehouse(void)
         int real_col[3];
         uint8_t real_col_num=0;
 
+
         delay_ms(10);
         Chassis_AnglePID.Need_Value = 0;       
         Chassis_FixSpeed(20,0,Yaw_Angle,300);        
@@ -977,21 +998,65 @@ void Go_To_Warehouse(void)
         Chassis_Stop();
         /*====================k230检测数字(仓库顺序)====================*/
 
-		DelayTask_Add(1, 5000, (void (*)(void))change_flag, "%d%d", &overtime_flag_1, 1);
+		DelayTask_Add(1, 7000, (void (*)(void))change_flag, "%d%d", &overtime_flag_1, 1);
+
+        delay_ms(500);
 		while (overtime_flag_1==0)
         {
             k230_process();
             if( k230_rx_ok == 1 )
             {
-                real_col[0]=k230_d1;//发送数据从左到右发送的
-                real_col[1]=k230_d2;
-                real_col[2]=k230_d3;
-                overtime_flag_1=1;
-                warehouse_identify_ok=1;
-                printf("%d  %d  %d\n\r",k230_d1,k230_d2,k230_d3);
+                int col[3] = {k230_d1, k230_d2, k230_d3};
+                int zero_count = 0;
+                int has_2 = 0;
+                int has_3 = 0;
+
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (col[i] == 0)
+                        zero_count++;
+                    else if (col[i] == 2)
+                        has_2 = 1;
+                    else if (col[i] == 3)
+                        has_3 = 1;
+                }
+
+                if (zero_count == 1 && has_2 && has_3)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (col[i] == 0)
+                            col[i] = 1;
+                    }
+                }
+
+                if ((col[0] == 1 || col[0] == 2 || col[0] == 3) &&
+                    (col[1] == 1 || col[1] == 2 || col[1] == 3) &&
+                    (col[2] == 1 || col[2] == 2 || col[2] == 3))
+                {
+                    real_col[0] = col[0];
+                    real_col[1] = col[1];
+                    real_col[2] = col[2];
+
+                    overtime_flag_1 = 1;
+                    warehouse_identify_ok = 1;
+
+                    printf("%d %d %d\r\n",
+                        real_col[0], real_col[1], real_col[2]);
+                }
+
+
+                // real_col[0]=k230_d1;//发送数据从左到右发送的
+                // real_col[1]=k230_d2;
+                // real_col[2]=k230_d3;
+                // overtime_flag_1=1;
+                // warehouse_identify_ok=1;
+                // printf("%d  %d  %d\n\r",k230_d1,k230_d2,k230_d3);
             }
 
         }
+
         if(warehouse_identify_ok!=1)
         {
             real_col[0]=3;

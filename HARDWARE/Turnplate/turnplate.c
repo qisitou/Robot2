@@ -132,14 +132,14 @@ void shake()
 {
     if(1 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos-60);
-        DelayTask_Add(1,500,(void (*)(void)) change_flag,"%d%d",&shake_flag,2);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos-70);
+        DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,2);
         shake_flag = 0;
     }
     else if(2 == shake_flag)
     {
-        Turnplate_SetPos(HoleArr[Hole_Idx].pos+60);
-        DelayTask_Add(1,500,(void (*)(void)) change_flag,"%d%d",&shake_flag,1);
+        Turnplate_SetPos(HoleArr[Hole_Idx].pos+70);
+        DelayTask_Add(1,300,(void (*)(void)) change_flag,"%d%d",&shake_flag,1);
         shake_flag = 0;
     }
 }
