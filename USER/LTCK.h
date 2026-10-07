@@ -17,6 +17,9 @@ extern volatile uint8_t turntabel_end;
 extern volatile uint8_t delay_task;
 extern volatile int8_t red_or_blue;
 extern volatile uint8_t left_warehourse;
+extern volatile uint8_t overtime_stairs;
+extern volatile uint8_t overtime_turntable;
+extern volatile uint8_t overtime_small_turntable;
 
 void LTCK_Init(void);
 void Choose_Color(void);

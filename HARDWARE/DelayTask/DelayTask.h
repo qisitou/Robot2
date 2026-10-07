@@ -19,6 +19,8 @@ typedef struct
 
 
 void DelayTask_Add(u32 Times,u16 Delay_ms, void (*FUNC)(void),char *format, ...);
+/* Main-loop only; returns number removed. Matches FUNC and first pointer argument. */
+u16 DelayTask_CancelByTarget(void (*FUNC)(void), const volatile void *target);
 
 
 

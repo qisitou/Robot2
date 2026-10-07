@@ -19,6 +19,9 @@ volatile uint8_t delay_task=0;
 
 volatile int8_t red_or_blue=1;
 
+volatile uint8_t overtime_stairs = 0;
+volatile uint8_t overtime_turntable = 0;
+volatile uint8_t overtime_small_turntable = 0;
 void LTCK_Init(void)
 {
     RingLight_Init();
@@ -276,8 +279,20 @@ void Go_To_Turntable(void)
                 turntable_task=2;
                 openmv_rx_cpl=0;
                 // DelayTask_Add(6, 500, (void (*)(void))openmv_send, "%s", "{1}");
+
+                /*=================超时检测=================*/
+                DelayTask_Add(1,30000,(void (*)(void)) change_flag,"%d%d",&overtime_turntable,1);               
                 break;
             case 2:
+
+                /*=================超时检测=================*/
+                if(overtime_turntable == 1)//初始值overtime_stairs=0
+                {
+                    overtime_turntable=0;
+                    return;;
+                }          
+                
+                /*=================视觉看到球就动,转盘识别到球掉下就转=================*/
                 if(turnplate_flag==1)
 				{
                     if (Ball_falling() == 0)
@@ -290,6 +305,9 @@ void Go_To_Turntable(void)
                         Turnplate_Move(Hole_Idx);
                         if(5 == ball_num)
                         {
+                            DelayTask_CancelByTarget(
+                                (void (*)(void))change_flag, &overtime_turntable);
+                            overtime_turntable = 0;                            
                             // for(int i=0;i<10;i++)
                             // {
                             //     printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
@@ -412,7 +430,7 @@ void Go_To_Stairs(void)
     } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LE, 120, 3));
 
 
-    DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &flag, 0);
+    DelayTask_Add(1, 500, (void (*)(void))change_flag, "%d%d", &flag, 0);
     while (flag)
     {
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
@@ -421,7 +439,7 @@ void Go_To_Stairs(void)
     Chassis_Stop();
     flag = 1;
     /*====================回正====================*/
-    Chassis_GuiWei(180,500);
+    Chassis_GuiWei(180,300);
 
      /*====================机械臂先动====================*/
 
@@ -507,12 +525,16 @@ void Go_To_Stairs(void)
             //     task=2;
             //     break;
 			case  2:
+                /*====================总判断:是否出了阶梯====================*/
                vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
 				if(vl53l0x_data.RangeMilliMeter > 150)               // 冲过头了/楼梯不在
 				{
 					Chassis_Stop();
 					stairs_ending=1;
-				}								
+				}		
+
+
+                /*====================先盲走,看到球后摄像头pid调距离,停稳后再次让摄像头微调====================*/
 				if (identified==1)
 				{		
 						
@@ -556,7 +578,7 @@ void Go_To_Stairs(void)
 						openmv_rx_cpl=0;
 					}
 				}
-				else
+				else//向右盲走
 				{		
                     vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);							
 					if (openmv_rx_cpl == 1)
@@ -581,6 +603,7 @@ void Go_To_Stairs(void)
                     }									
 				}break;	
 			case 3:
+                /*====================先微调与阶梯的距离,然后执行高中低不同的动作====================*/
                 DelayTask_Add(1, 500, (void (*)(void))change_flag, "%d%d", &flag, 0);
                 while (flag)
                 {
@@ -604,21 +627,40 @@ void Go_To_Stairs(void)
 					runActionGroup(6, 1, false);
                     delay_ms(3000);
 				}
-				task=4;
+                task=4;
+
+                /*=================超时检测=================*/
+                DelayTask_CancelByTarget((void (*)(void))change_flag, &overtime_stairs);
+                overtime_stairs=0;
+                DelayTask_Add(1,5000,(void (*)(void)) change_flag,"%d%d",&overtime_stairs,1);
 				break;
 			case 4:
+                    /*=================超时检测=================*/
+                if(overtime_stairs == 1)//初始值overtime_stairs=0
+                {
+                    overtime_stairs=0;
+                    task=2;
+                    soft_accel=0;
+                    break;
+                }
+
+                    /*=================球落下,转盘就转一格=================*/
 				if(turnplate_flag==1)
 				{
                     rgb_SetColor(RGB_3, RED);
 					if (Ball_falling() == 0)
 					{
+                        DelayTask_CancelByTarget((void (*)(void))change_flag, &overtime_stairs);
+                        overtime_stairs=0;
+
+
                         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
 						// HoleArr[Hole_Idx+3].ball = 0;
 						Hole_Idx++;	
 
 						Turnplate_Move(Hole_Idx);
-						DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&task,2);	
 
+						DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&task,2);	
 						DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
                         rgb_SetColor(RGB_3, BLUE);
 						turnplate_flag = 0;
@@ -628,6 +670,7 @@ void Go_To_Stairs(void)
 				break;	
 		}
 	}
+
     Chassis_Stop();
     runActionGroup(10,1,false);
     delay_ms(1000);
@@ -745,8 +788,16 @@ void Go_To_Small_Turntable(void)
     
     Avoid_PID.Need_Value = 130;
     PID_PositionClean(&Avoid_PID);      // 清掉PID残留
+
+    DelayTask_Add(1,20000,(void (*)(void)) change_flag,"%d%d",&overtime_small_turntable,1);    
     while(stake_flag!=10)                 // 推到两个球,然后碰到90°就退出
     {
+
+        if(overtime_small_turntable==1)
+        {
+            stake_flag=3;
+        }
+
         vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
         // printf("vl53l0x_dev2: %d\r\n", vl53l0x_data.RangeMilliMeter);
 
@@ -1074,8 +1125,11 @@ void Go_To_Warehouse(void)
         warehouse_virtual_col = real_col[real_col_num];
         while(warehouse_task_end==0)
         {
+
+            /*====================总判断:是否出了仓库====================*/
             switch(warehouse_task)
             {
+                
                 case 1:
                     while (warehouse_row>0)
                     {  

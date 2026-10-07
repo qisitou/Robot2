@@ -74,6 +74,68 @@ void DelayTask_Add(u32 Times,u16 Delay_ms, void (*FUNC)(void),char *format, ...)
 
 
 
+/* Main-loop only: cancel all tasks whose first argument is target.
+ * Both staging and active lists are protected against timer interrupts.
+ * Never call from a task callback: the scheduler owns its traversal there.
+ */
+u16 DelayTask_CancelByTarget(void (*FUNC)(void), const volatile void *target)
+{
+    u16 removed = 0;
+    u16 i = 0;
+    u32 primask;
+    DelayTask *node;
+    DelayTask *previous = NULL;
+
+    if (__get_IPSR() != 0U)
+        return 0;
+
+    primask = __get_PRIMASK();
+    __disable_irq();
+
+    while (i < DelayTask_Add_Flag)
+    {
+        int *params = (int *)DelayTask_Add_Arr[i][4];
+        if (DelayTask_Add_Arr[i][2] == (u32)FUNC &&
+            DelayTask_Add_Arr[i][3] >= 1 && params != NULL &&
+            (u32)params[0] == (u32)target)
+        {
+            free(params);
+            DelayTask_Add_Flag--;
+            memmove(DelayTask_Add_Arr[i], DelayTask_Add_Arr[i + 1],
+                    (DelayTask_Add_Flag - i) * sizeof(DelayTask_Add_Arr[0]));
+            removed++;
+        }
+        else
+            i++;
+    }
+
+    node = p_head;
+    while (node != NULL)
+    {
+        DelayTask *next = (DelayTask *)node->next;
+        if (node->FUNC == FUNC && node->param_num >= 1 &&
+            node->params != NULL && (u32)node->params[0] == (u32)target)
+        {
+            if (previous != NULL)
+                previous->next = node->next;
+            else
+                p_head = next;
+            if (p_tail == node)
+                p_tail = previous;
+            free(node->params);
+            free(node);
+            DelayTask_Num--;
+            removed++;
+        }
+        else
+            previous = node;
+        node = next;
+    }
+    p_move = NULL;
+    __set_PRIMASK(primask);
+    return removed;
+}
+
 void DelayTask_Times_Add()
 {
     for(u16 i = 0; i <DelayTask_Add_Flag; i++)
