@@ -6,7 +6,7 @@
 #include "turnplate.h"   //用到 HoleArr 和 Hole_Now_Idx
 
 
-u8 cx522_allow_all = 0;  //????1?????????
+volatile u8 cx522_allow_all = 0;  //????1?????????
 u8 cx522_allow = 1;  //????1?????????
 u8 cx522_rxbuf[23];
 
@@ -112,7 +112,7 @@ void cx522_ProcessData(void)
     if((cx522_frame_len >= 23) && (0x22 == cx522_frame[2]) && (0x00 == cx522_frame[1]) && (0x00 == cx522_frame[4]))
     {
         u8 ic = cx522_frame[10];
-        if((1 == cx522_allow) && (0 == HoleArr[Hole_Now_Idx].ic) && (ic!=last_ic))
+        if((cx522_allow_all == 1) &&(1 == cx522_allow) && (0 == HoleArr[Hole_Now_Idx].ic) && (ic!=last_ic))
         {
             HoleArr[Hole_Now_Idx].ic = ic;
             last_ic = ic;

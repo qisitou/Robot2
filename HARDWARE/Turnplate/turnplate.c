@@ -13,7 +13,7 @@ u8 shake_flag = 0;        //摇转盘标志（shake函数用）
 
 u8 detect_allow = 0;      //检测总开关：1=允许检测
 u8 detect_stage = 2;      //检测阶段：当前只有阶段2（找目标球）
-u8 detect_flag = 1;       //阶段内步骤：0=等待延时，1/2/3
+volatile u8 detect_flag = 1;       //阶段内步骤：0=等待延时，1/2/3
 u8 detect_cpl = 1;        //检测完成标志：1=已完成
 u8 continue_flag = 0;     //同步信号：延时2秒后置1
 
@@ -257,7 +257,7 @@ void turnplate_detect_test()
         }
         else if (2 == detect_flag)
         {
-            while ( HoleArr[Hole_Idx].ball==1 ||  HoleArr[Hole_Idx].ic !=0) 
+            while ( HoleArr[Hole_Idx].ball==1 ||  HoleArr[Hole_Idx].ic !=0) //1是没球,0是有球 ,
             {
                 Hole_Idx += 1;
 //                    printf("Hole_Idx:%d\r\n", Hole_Idx);
@@ -284,9 +284,20 @@ void turnplate_detect_test()
         {
             if(TIME_S > (timeout_S + 8))
             {
+
                 printf("detect_timeout\r\n");
-                HoleArr[Hole_Idx].ic = 1;
-                detect_flag = 2;
+                HoleArr[Hole_Idx].ic = 0;
+                Hole_Idx++;
+                if (Hole_Idx >= 10)
+                {
+                    detect_cpl = 1;
+                    detect_flag = 1;
+                    detect_allow = 0;
+                }
+                else
+                {
+                    detect_flag = 2;
+                }
                 return;
             }
 

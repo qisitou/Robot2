@@ -483,7 +483,7 @@ void Go_To_Stairs(void)
 
     Chassis_GuiWei(180,500);
 
-    DelayTask_Add(1, 2000, (void (*)(void))change_flag, "%d%d", &flag, 0);
+    DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &flag, 0);
     while (flag)
     {
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data);
@@ -678,8 +678,8 @@ void Go_To_Stairs(void)
 
 						Turnplate_Move(Hole_Idx);
 
-						DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&task,2);	
-						DelayTask_Add(1,600,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
+						DelayTask_Add(1,1000,(void (*)(void)) change_flag,"%d%d",&task,2);	
+						DelayTask_Add(1,1000,(void (*)(void)) change_flag,"%d%d",&turnplate_flag,1);
                         rgb_SetColor(RGB_3, BLUE);
 						turnplate_flag = 0;
                         soft_accel=0;
@@ -701,13 +701,15 @@ void Go_To_Small_Turntable(void)
     // detect_allow=1;
 
 
-
+    // Chassis_AnglePID.Need_Value = 180;
+    // Chassis_GuiWei(180,500);
+    // Chassis_Stop();
 
     IM948_Reset();
     Chassis_AnglePID.Need_Value = Yaw_Angle;
     // 前往小转盘
     /*====================先退下，给转弯一点空间====================*/
-    Chassis_FixSpeed(90, -35, 0, 600); // 向右平移 275*2ms=550ms（速度翻倍，时间减半，距离不变）
+    Chassis_FixSpeed(90, -35, 0, 650); // 向右平移 275*2ms=550ms（速度翻倍，时间减半，距离不变）
     Chassis_Stop();                   // 停车
     /*====================左转====================*/
     
@@ -772,7 +774,6 @@ void Go_To_Small_Turntable(void)
     Chassis_Stop();
     flag = 1;
     
-    /*====================开始绕圈====================*/
 
 
 
@@ -807,14 +808,17 @@ void Go_To_Small_Turntable(void)
     Avoid_PID.Need_Value = 130;
     PID_PositionClean(&Avoid_PID);      // 清掉PID残留
 
-    DelayTask_Add(1,20000,(void (*)(void)) change_flag,"%d%d",&overtime_small_turntable,1);    
+    // DelayTask_Add(1,20000,(void (*)(void)) change_flag,"%d%d",&overtime_small_turntable,1);    
+
+
+    /*====================开始绕圈====================*/ 
     while(stake_flag!=10)                 // 推到两个球,然后碰到90°就退出
     {
 
-        if(overtime_small_turntable==1)
-        {
-            stake_flag=3;
-        }
+        // if(overtime_small_turntable==1)
+        // {
+        //     stake_flag=3;
+        // }
 
         vl53l0x_start_single_test(&vl53l0x_dev2,&vl53l0x_data);
         // printf("vl53l0x_dev2: %d\r\n", vl53l0x_data.RangeMilliMeter);
@@ -887,9 +891,9 @@ void Go_To_Small_Turntable(void)
                 {
                     delay_ms(5);
                     Chassis_Stop();
-                    delay_ms(100);
+                    delay_ms(500);
                     Chassis_AnglePID.Need_Value = 0;
-                    Chassis_GuiWei(0,300);
+                    Chassis_GuiWei(0,500);
                     Chassis_Stop();
                     stake_flag=10;
                 }
@@ -935,7 +939,7 @@ void Go_To_Warehouse(void)
 
 		 HoleArr[0].ic=0;	
 		 HoleArr[1].ic=0;
-		 HoleArr[2].ic=0;		
+		//  HoleArr[2].ic=0;		
 		 HoleArr[3].ic=0;
 		 HoleArr[4].ic=0;
 		 HoleArr[5].ic=0;
@@ -944,7 +948,7 @@ void Go_To_Warehouse(void)
 		 HoleArr[8].ic=0;
 		 HoleArr[9].ic=0;	
 
-
+        /*====================第一遍检测====================*/
         cx522_allow_all=1;
         detect_flag=1;       
         detect_allow=1;
@@ -956,8 +960,19 @@ void Go_To_Warehouse(void)
             printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
         }
         cx522_allow_all=0;
-
-
+        delay_ms(100);
+        /*====================第二遍检测====================*/
+        cx522_allow_all=1;
+        detect_flag=1;       
+        detect_allow=1;
+        delay_ms(100);
+        while (detect_cpl==0);   
+        
+        for(int i=0;i<10;i++)
+        {
+            printf("id:%d,ball:%d,ic:%#x\r\n",i,HoleArr[i].ball,HoleArr[i].ic);
+        }
+        cx522_allow_all=0;
 		//  HoleArr[0].ic=0x13;	
 		//  HoleArr[1].ic=0x31;
 		//  HoleArr[2].ic=0x21;		
@@ -998,7 +1013,7 @@ void Go_To_Warehouse(void)
         Chassis_Stop();
         /*====================k230检测数字(仓库顺序)====================*/
 
-		DelayTask_Add(1, 7000, (void (*)(void))change_flag, "%d%d", &overtime_flag_1, 1);
+		DelayTask_Add(1, 1000, (void (*)(void))change_flag, "%d%d", &overtime_flag_1, 1);
 
         delay_ms(500);
 		while (overtime_flag_1==0)
@@ -1059,9 +1074,9 @@ void Go_To_Warehouse(void)
 
         if(warehouse_identify_ok!=1)
         {
-            real_col[0]=3;
+            real_col[0]=1;
             real_col[1]=2;
-            real_col[2]=1;        
+            real_col[2]=3;        
             printf("k230timeout");  
             // while(1);
         }
@@ -1073,13 +1088,16 @@ void Go_To_Warehouse(void)
 
         // /*====================openmv检测数字====================*/
         RingLight_On();
-        // runActionGroup(9, 1, false);
-        // arm_finish_waiting();
+        runActionGroup(9, 1, false);
+        arm_finish_waiting();
+        delay_ms(100);
         openmv_send("{6}");
-        delay_ms(1000);
+        delay_ms(2000);
         openmv_rx_cpl=0;
-
-		DelayTask_Add(1, 100, (void (*)(void))change_flag, "%d%d", &overtime_flag_2, 1);
+    
+        // while(1);
+    
+		DelayTask_Add(1, 10000, (void (*)(void))change_flag, "%d%d", &overtime_flag_2, 1);
 
 
         uint8_t openmv_ok_cnt=0;
@@ -1105,7 +1123,7 @@ void Go_To_Warehouse(void)
                         for (int i = 0; i < 6; i++) openmv_last[i] = d[i];
                     }
 
-                    if (openmv_ok_cnt >= 3)      // 连续三次一样，才采用
+                    if (openmv_ok_cnt >= 1)      // 一次就行
                     {
                         layer[0] = d[0];  openmv_warehouse_block_3 = d[1];
                         layer[1] = d[2];  openmv_warehouse_block_2 = d[3];
@@ -1129,11 +1147,13 @@ void Go_To_Warehouse(void)
         if(warehouse_identify_ok!=1)
         {
             printf("openmvtimeout");  
-            // while(1);
-            layer[0] = layer[1] = layer[2] = 0;
-            openmv_warehouse_block_1 = openmv_warehouse_block_2 = openmv_warehouse_block_3 = 0;            
+            layer[0]=1; layer[1]=2; layer[2]=3;
+            openmv_warehouse_block_1=1;openmv_warehouse_block_2=2;openmv_warehouse_block_3=3;            
+            // layer[0] = layer[1] = layer[2] = 0;
+            // openmv_warehouse_block_1 = openmv_warehouse_block_2 = openmv_warehouse_block_3 = 0;            
         }   
         RingLight_Off();
+
 
         // layer[0]=1; layer[1]=2; layer[2]=3;
         // openmv_warehouse_block_1=1;openmv_warehouse_block_2=2;openmv_warehouse_block_3=3;
@@ -1261,8 +1281,8 @@ void Go_To_Warehouse(void)
                 case 3:
                     go_next_gap();   
                     // // 从车上固定位置(数字3/2/1对应位)放回仓库;识别失败时可能拿空,但不影响完赛
-                    // runActionGroup(63, 1, false);arm_finish_waiting();
-                    // runActionGroup(62, 1, false);arm_finish_waiting();
+                    runActionGroup(63, 1, false);arm_finish_waiting();
+                    runActionGroup(62, 1, false);arm_finish_waiting();
                     // runActionGroup(61, 1, false);arm_finish_waiting();                    
                     
 

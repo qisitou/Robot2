@@ -8,7 +8,7 @@
 #define CX522_UART UART4
 #define CX522_DMA_STREAMx DMA1_Stream2
 
-extern u8 cx522_allow_all; 
+volatile extern u8 cx522_allow_all; 
 extern u8 cx522_allow;
 extern u8 cx522_rxbuf[23];
 

@@ -30,17 +30,17 @@ int main(void)
 	LTCK_Init();   
 	// DelayTask_Add(1000000, 1000, (void (*)(void))Print_Stairs_Info_Task, NULL);  
 	/*==f==================选择红蓝方====================*/
- 	Choose_Color();		
+ 	// Choose_Color();		
  	/*====================前往大转盘====================*/
- 	Go_To_Turntable();
+ 	// Go_To_Turntable();
 	/*====================前往楼梯====================*/
- 	Go_To_Stairs();
+ 	// Go_To_Stairs();
 	/*====================前往小圆盘====================*/
-  	Go_To_Small_Turntable();
+  	// Go_To_Small_Turntable();
 	/*====================前往仓库====================*/
-  	Go_To_Warehouse();
+  	// Go_To_Warehouse();
  	/*====================前往====================*/
- 	Go_To_Home();
+ 	// Go_To_Home();
 
 	/*====================测试读卡器====================*/
 	// Turnplate_Move(8);
@@ -80,11 +80,10 @@ int main(void)
 
 	int8_t x=-1;
 
-
+	RingLight_On();
 	uint8_t test=0;
 	while (1)
-	{
-		// RingLight_On();
+	{	
 		// delay_ms(2000);
 		// RingLight_Off();
 		// delay_ms(2000);

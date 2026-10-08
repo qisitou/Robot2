@@ -21,7 +21,7 @@ extern u8 shake_flag;
 /* 检测状态机相关变量 */
 extern u8 detect_allow;
 extern u8 detect_stage;
-extern u8 detect_flag;
+volatile extern u8 detect_flag;
 extern u8 detect_cpl;
 extern u8 continue_flag;
 

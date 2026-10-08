@@ -113,14 +113,13 @@ void Chassis_PathInit(void)
 
 	Chassis_PathPoint_StartToHome[0].vy=0;
 	Chassis_PathPoint_StartToHome[0].Delta_Angle=Straight;
-	Chassis_PathPoint_StartToHome[0].t=400;   // 向右 2400mm
 	if(target_color == 'b')
 	{
 		Chassis_PathPoint_StartToHome[0].t=120;
 	}
 	else
 	{
-		Chassis_PathPoint_StartToHome[0].t=380;
+		Chassis_PathPoint_StartToHome[0].t=400;
 	}
 	Chassis_PathPoint_StartToHome[0].K=400;
 
@@ -138,7 +137,7 @@ void Chassis_PathInit(void)
 	}	
 	Chassis_PathPoint_StartToHome[1].Delta_Angle=Straight;
 	Chassis_PathPoint_StartToHome[1].t=0;    // 向前 600mm
-	Chassis_PathPoint_StartToHome[1].K=650;
+	Chassis_PathPoint_StartToHome[1].K=580;
 
 	Chassis_Path_StartToHome.End_K=300;
 	Chassis_Path_StartToHome.Path_Size=2;
