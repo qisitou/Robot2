@@ -119,7 +119,7 @@ void Chassis_PathInit(void)
 	}
 	else
 	{
-		Chassis_PathPoint_StartToHome[0].t=400;
+		Chassis_PathPoint_StartToHome[0].t=450;
 	}
 	Chassis_PathPoint_StartToHome[0].K=400;
 
@@ -137,7 +137,7 @@ void Chassis_PathInit(void)
 	}	
 	Chassis_PathPoint_StartToHome[1].Delta_Angle=Straight;
 	Chassis_PathPoint_StartToHome[1].t=0;    // 向前 600mm
-	Chassis_PathPoint_StartToHome[1].K=580;
+	Chassis_PathPoint_StartToHome[1].K=570;
 
 	Chassis_Path_StartToHome.End_K=300;
 	Chassis_Path_StartToHome.Path_Size=2;

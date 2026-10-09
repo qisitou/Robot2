@@ -701,9 +701,9 @@ void Go_To_Small_Turntable(void)
     // detect_allow=1;
 
 
-    // Chassis_AnglePID.Need_Value = 180;
-    // Chassis_GuiWei(180,500);
-    // Chassis_Stop();
+    Chassis_AnglePID.Need_Value = 180;
+    Chassis_GuiWei(180,500);
+    Chassis_Stop();
 
     IM948_Reset();
     Chassis_AnglePID.Need_Value = Yaw_Angle;
@@ -741,14 +741,29 @@ void Go_To_Small_Turntable(void)
 
     delay_ms(50);   
 
-    DelayTask_Add(1, 400, (void (*)(void))change_flag, "%d%d", &flag, 0);
-    while (flag)
+
+    if(target_color == 'b')
     {
-        Chassis_InverseMotionControl(0, 0, red_or_blue*(-150));  
+        DelayTask_Add(1, 300, (void (*)(void))change_flag, "%d%d", &flag, 0);
+        while (flag)
+        {
+            Chassis_InverseMotionControl(0, 0, 150);  
+        }
+        delay_ms(50);   
+        Chassis_Stop();
+        flag = 1;       
     }
-    delay_ms(50);   
-	Chassis_Stop();
-    flag = 1;  
+    else
+    {
+        DelayTask_Add(1, 400, (void (*)(void))change_flag, "%d%d", &flag, 0);
+        while (flag)
+        {
+            Chassis_InverseMotionControl(0, 0, -150);  
+        }
+        delay_ms(50);   
+        Chassis_Stop();
+        flag = 1;        
+    }
  
     runActionGroup(0,1,false);
     delay_ms(700);
@@ -962,6 +977,10 @@ void Go_To_Warehouse(void)
         cx522_allow_all=0;
         delay_ms(100);
         /*====================第二遍检测====================*/
+        Hole_Idx=0;
+        Turnplate_Move(Hole_Idx);
+        delay_ms(wait_time+200);
+
         cx522_allow_all=1;
         detect_flag=1;       
         detect_allow=1;
@@ -1233,11 +1252,10 @@ void Go_To_Warehouse(void)
                             {
                                 Turnplate_Move(hole+3);
                                 delay_ms(wait_time+300);
-                                runActionGroup(10+warehouse_row, 1, false);//抓取转盘的球放到仓库   13,12,11
-
-                                // printf("hole:%d\r\n",hole);
-                                // printf("movement%d\r\n",10+warehouse_row);
-                               arm_finish_waiting();                 
+                                // runActionGroup(10+warehouse_row, 1, false);//抓取转盘的球放到仓库   13,12,11
+                                // arm_finish_waiting();                           
+                                printf("hole:%d\r\n",hole);
+                                printf("movement%d\r\n",10+warehouse_row);             
                             }           
                             warehouse_row--;                     
                         }
@@ -1248,8 +1266,8 @@ void Go_To_Warehouse(void)
                             {
                                 Turnplate_Move(hole+3);
                                 delay_ms(wait_time+300);              // 等转盘真正转到位
-                                runActionGroup(10+warehouse_row, 1, false);                          
-                                arm_finish_waiting();                       // 等机械臂做完(自带10s兜底)
+                                // runActionGroup(10+warehouse_row, 1, false);                          
+                                // arm_finish_waiting();                       // 等机械臂做完(自带10s兜底)
                                 printf("hole:%d\r\n",hole);
                                 printf("movement%d\r\n",10+warehouse_row);     
                                 delay_ms(1500); 
@@ -1281,8 +1299,8 @@ void Go_To_Warehouse(void)
                 case 3:
                     go_next_gap();   
                     // // 从车上固定位置(数字3/2/1对应位)放回仓库;识别失败时可能拿空,但不影响完赛
-                    runActionGroup(63, 1, false);arm_finish_waiting();
-                    runActionGroup(62, 1, false);arm_finish_waiting();
+                    // runActionGroup(63, 1, false);arm_finish_waiting();
+                    // runActionGroup(62, 1, false);arm_finish_waiting();
                     // runActionGroup(61, 1, false);arm_finish_waiting();                    
                     
 
