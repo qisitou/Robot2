@@ -697,13 +697,14 @@ void Go_To_Stairs(void)
 void Go_To_Small_Turntable(void)
 {
 
+    int16_t dis_min=0;
 
     // detect_allow=1;
 
 
-    Chassis_AnglePID.Need_Value = 180;
-    Chassis_GuiWei(180,500);
-    Chassis_Stop();
+    // Chassis_AnglePID.Need_Value = 180;
+    // Chassis_GuiWei(180,500);
+    // Chassis_Stop();
 
     IM948_Reset();
     Chassis_AnglePID.Need_Value = Yaw_Angle;
@@ -715,7 +716,7 @@ void Go_To_Small_Turntable(void)
     
     if (target_color == 'b')
     {
-       Chassis_TurnRight(135);
+       Chassis_TurnRight(110);
        Chassis_AnglePID.Need_Value = Yaw_Angle;
     }
     else
@@ -725,45 +726,74 @@ void Go_To_Small_Turntable(void)
     }
     delay_ms(20);
 
-    /*====================原地旋转检测小圆盘,写死====================*/
+    /*====================寻找小转盘中点====================*/
 	do
     {
-        Chassis_InverseMotionControl(0, 0, red_or_blue*150);                 // 原地左转(w=250,逆时针)
+        Chassis_InverseMotionControl(0, 0, red_or_blue*50);                 // 原地左转(w=250,逆时针)
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data); // 激光测距
-    } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LT, 350, 3)); // 连续次距离<350mm才停
-    do
+    } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LT, 350, 2)); // 连续次距离<350mm才停    
+    Chassis_Stop();
+    delay_ms(500);
+    vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data); // 激光测距
+    dis_min = vl53l0x_data.RangeMilliMeter;
+
+	do
     {
-        Chassis_InverseMotionControl(0, 0, red_or_blue*150);                 // 继续左转(w=250,逆时针)
+        Chassis_InverseMotionControl(0, 0, red_or_blue*50);                 // 原地左转(w=250,逆时针)
         vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data); // 激光测距
-    } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_GE, 500, 3)); // 连续次距离<350mm才停
-    Chassis_Stop(); // 检测到小圆盘,停车
-
-
-    delay_ms(50);   
-
-
-    if(target_color == 'b')
-    {
-        DelayTask_Add(1, 300, (void (*)(void))change_flag, "%d%d", &flag, 0);
-        while (flag)
+        if (vl53l0x_data.RangeMilliMeter < dis_min)
         {
-            Chassis_InverseMotionControl(0, 0, 150);  
+            dis_min = vl53l0x_data.RangeMilliMeter;
         }
-        delay_ms(50);   
-        Chassis_Stop();
-        flag = 1;       
-    }
-    else
+    } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_GT, dis_min+20, 2)); // 连续次距离<350mm才停
+    Chassis_Stop();
+
+	do
     {
-        DelayTask_Add(1, 400, (void (*)(void))change_flag, "%d%d", &flag, 0);
-        while (flag)
-        {
-            Chassis_InverseMotionControl(0, 0, -150);  
-        }
-        delay_ms(50);   
-        Chassis_Stop();
-        flag = 1;        
-    }
+        Chassis_InverseMotionControl(0, 0, red_or_blue*-(30));                 // 原地左转(w=250,逆时针)
+        vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data); // 激光测距
+    } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LT, dis_min+5, 2)); // 连续次距离<350mm才停
+    Chassis_Stop();
+
+    // /*====================原地旋转检测小圆盘,写死====================*/
+	// do
+    // {
+    //     Chassis_InverseMotionControl(0, 0, red_or_blue*150);                 // 原地左转(w=250,逆时针)
+    //     vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data); // 激光测距
+    // } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_LT, 350, 3)); // 连续次距离<350mm才停
+    // do
+    // {
+    //     Chassis_InverseMotionControl(0, 0, red_or_blue*150);                 // 继续左转(w=250,逆时针)
+    //     vl53l0x_start_single_test(&vl53l0x_dev2, &vl53l0x_data); // 激光测距
+    // } while (Range_ConsecutiveMatch_AutoCnt(vl53l0x_data.RangeMilliMeter, CMP_GE, 500, 3)); // 连续次距离<350mm才停
+    // Chassis_Stop(); // 检测到小圆盘,停车
+
+
+    // delay_ms(50);   
+
+
+    // if(target_color == 'b')
+    // {
+    //     DelayTask_Add(1, 300, (void (*)(void))change_flag, "%d%d", &flag, 0);
+    //     while (flag)
+    //     {
+    //         Chassis_InverseMotionControl(0, 0, 150);  
+    //     }
+    //     delay_ms(50);   
+    //     Chassis_Stop();
+    //     flag = 1;       
+    // }
+    // else
+    // {
+    //     DelayTask_Add(1, 400, (void (*)(void))change_flag, "%d%d", &flag, 0);
+    //     while (flag)
+    //     {
+    //         Chassis_InverseMotionControl(0, 0, -150);  
+    //     }
+    //     delay_ms(50);   
+    //     Chassis_Stop();
+    //     flag = 1;        
+    // }
  
     runActionGroup(0,1,false);
     delay_ms(700);
